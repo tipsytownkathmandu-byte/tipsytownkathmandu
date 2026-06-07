@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tipsy Town — Cash Flow Tracker v2</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E🪔%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;}
+body{margin:0;padding:0;background:#0f0502;color:#f3e2bd;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh;}
+.tt-root{position:relative;min-height:100vh;}
+.tt-bg{position:fixed;inset:0;background:radial-gradient(ellipse at top,#5c1a0a 0%,#2a0d05 50%,#0f0502 100%);overflow:hidden;z-index:0;}
+.tt-bg::before{content:"";position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg at 50% 50%,transparent 0deg,rgba(218,165,32,.04) 1deg,transparent 2deg,transparent 30deg);animation:rot 80s linear infinite;}
+.tt-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(255,140,0,.15),transparent 30%),radial-gradient(circle at 80% 70%,rgba(255,180,50,.12),transparent 30%);}
+@keyframes rot{to{transform:rotate(360deg);}}
+.diya{position:fixed;width:14px;height:18px;border-radius:50% 50% 30% 30%;background:radial-gradient(ellipse at center top,#fff5b8 0%,#ffb627 35%,#ff6b1a 60%,#7a1f00 100%);box-shadow:0 0 20px 4px rgba(255,140,0,.6);animation:flicker 2s ease-in-out infinite;z-index:1;}
+@keyframes flicker{0%,100%{transform:scale(1);opacity:.95;}50%{transform:scale(1.08);opacity:1;}}
+.tt-content{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:1.25rem;}
+.banner{text-align:center;padding:32px 50px 16px;border:1.5px solid #d4a574;border-radius:10px;background:linear-gradient(180deg,rgba(92,26,10,.85),rgba(45,13,5,.85));margin-bottom:1rem;position:relative;}
+.banner .swastik{position:absolute;top:50%;transform:translateY(-50%);color:#d4a574;font-size:22px;}
+.banner .swastik.left{left:14px;}.banner .swastik.right{right:14px;}
+.ig-btn{position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);color:#fff5e1;border-radius:6px;padding:5px 10px;font-size:11px;text-decoration:none;font-weight:500;}
+.sync-pill{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.4);border:1px solid rgba(212,165,116,.5);color:#d4a574;border-radius:10px;padding:3px 9px;font-size:10px;display:flex;align-items:center;gap:5px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#888;}
+.sync-dot.on{background:#7dd87a;box-shadow:0 0 6px #7dd87a;}
+.sync-dot.err{background:#ff8a8a;box-shadow:0 0 6px #ff8a8a;}
+.om{font-size:24px;color:#ffd700;text-shadow:0 0 14px rgba(255,215,0,.8);}
+.shop-name{font-size:24px;font-weight:500;color:#ffd700;letter-spacing:1px;margin:4px 0;}
+.tagline{font-size:12px;color:#e8c87a;font-style:italic;}
+.date-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;}
+.date-card{background:rgba(255,215,0,.06);border:1px solid rgba(212,165,116,.4);border-radius:8px;padding:10px 12px;}
+.date-label{font-size:11px;color:#d4a574;margin-bottom:2px;}
+.date-val{font-size:14px;font-weight:500;color:#fff5b8;}
+.tabs{display:flex;gap:6px;margin-bottom:1rem;border-bottom:1px solid rgba(212,165,116,.3);padding-bottom:6px;flex-wrap:wrap;}
+.tab{padding:8px 14px;background:transparent;border:1px solid rgba(212,165,116,.3);border-radius:6px;color:#d4a574;cursor:pointer;font-size:13px;font-family:inherit;}
+.tab.active{background:linear-gradient(180deg,#b8860b,#8b6508);color:#1a0a05;border-color:#ffd700;font-weight:500;}
+.tt-pane{display:none;}.tt-pane.active{display:block;}
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem;}
+.metric{background:linear-gradient(180deg,rgba(255,215,0,.08),rgba(139,101,8,.05));border:1px solid rgba(212,165,116,.4);border-radius:8px;padding:12px;text-align:center;}
+.metric-label{font-size:11px;color:#d4a574;margin-bottom:4px;}
+.metric-val{font-size:18px;font-weight:500;}
+.tt-section{background:rgba(26,10,5,.85);border:1px solid rgba(212,165,116,.3);border-radius:10px;padding:14px;margin-bottom:1rem;}
+.tt-section h3{margin:0 0 10px;font-size:15px;color:#ffd700;font-weight:500;}
+.tt-section h4{margin:14px 0 8px;font-size:13px;color:#d4a574;font-weight:500;}
+.tt-input,.tt-select{background:rgba(255,245,184,.08);border:1px solid rgba(212,165,116,.4);color:#fff5b8;border-radius:6px;padding:9px 11px;font-size:13px;font-family:inherit;width:100%;}
+.tt-input:focus,.tt-select:focus{outline:none;border-color:#ffd700;box-shadow:0 0 0 2px rgba(255,215,0,.2);}
+.tt-select option,.tt-select optgroup{background:#2a0d05;color:#fff5b8;font-family:inherit;}
+.tt-select optgroup{color:#ffd700;font-weight:bold;font-style:normal;background:#1a0a05;}
+.tt-select option:checked{background:#5c1a0a;color:#ffd700;}
+.tt-btn{background:linear-gradient(180deg,#d4a574,#8b6508);color:#1a0a05;border:none;border-radius:6px;padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;}
+.tt-btn:hover{background:linear-gradient(180deg,#ffd700,#b8860b);}
+.tt-btn:disabled{opacity:.4;cursor:not-allowed;}
+.tt-btn.danger{background:linear-gradient(180deg,#a02020,#5a0d0d);color:#fff5b8;}
+.tt-btn.ghost{background:transparent;border:1px solid rgba(212,165,116,.5);color:#d4a574;}
+.tt-btn.small{padding:6px 10px;font-size:11px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.form-grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.tx-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(212,165,116,.15);font-size:13px;gap:8px;}
+.tx-meta{color:#d4a574;font-size:11px;margin-top:2px;}
+.tt-empty{color:rgba(243,226,189,.4);text-align:center;padding:14px 0;font-size:13px;font-style:italic;}
+.seats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1rem;}
+.seat-card{background:rgba(255,215,0,.05);border:1.5px solid rgba(212,165,116,.4);border-radius:8px;padding:12px 8px;text-align:center;cursor:pointer;}
+.seat-card:hover{border-color:#ffd700;background:rgba(255,215,0,.12);}
+.seat-card.occupied{border-color:#dc2626;background:rgba(220,38,38,.15);}
+.seat-card.selected{border-color:#ffd700;background:rgba(255,215,0,.2);box-shadow:0 0 14px rgba(255,215,0,.4);}
+.seat-num{font-size:20px;font-weight:500;color:#ffd700;}
+.seat-label{font-size:11px;color:#e8c87a;margin-top:2px;}
+.seat-status{font-size:10px;color:#d4a574;margin-top:2px;}
+.bill-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed rgba(212,165,116,.2);font-size:13px;gap:8px;}
+.bill-total{font-size:16px;font-weight:500;color:#ffd700;border-top:1px solid #d4a574;padding-top:8px;margin-top:8px;}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.chart-box{background:rgba(255,245,184,.04);border:1px solid rgba(212,165,116,.3);border-radius:8px;padding:12px;}
+.chart-box h4{margin:0 0 8px;font-size:13px;color:#ffd700;font-weight:500;}
+.legend-row{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#d4a574;margin-bottom:6px;}
+.legend-row span.k{display:flex;align-items:center;gap:4px;}
+.swatch{width:9px;height:9px;border-radius:2px;}
+.bill-receipt{background:#fff5e1;color:#3a1a05;padding:14px;border-radius:6px;font-family:'Courier New',monospace;margin-top:10px;font-size:12px;}
+.bill-receipt h4{color:#8b1818;margin:0 0 4px;text-align:center;font-size:15px;}
+.bill-receipt .center{text-align:center;}
+.bill-receipt hr{border:none;border-top:1px dashed #8b1818;margin:6px 0;}
+.bill-receipt .row{display:flex;justify-content:space-between;}
+.cat-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;background:rgba(212,165,116,.2);color:#d4a574;margin-right:4px;}
+.pay-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;background:rgba(125,216,122,.15);color:#7dd87a;border:1px solid rgba(125,216,122,.3);}
+.pay-tag{display:inline-block;padding:4px 10px;border-radius:12px;font-size:11px;background:rgba(255,215,0,.1);color:#ffd700;border:1px solid rgba(255,215,0,.3);margin:2px;}
+.toggle-row{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:13px;color:#d4a574;flex-wrap:wrap;}
+.toggle-row input{width:auto;}
+.status-msg{margin-top:10px;font-size:12px;padding:10px;border-radius:6px;line-height:1.5;}
+.status-ok{background:rgba(125,216,122,.15);border:1px solid rgba(125,216,122,.4);color:#7dd87a;}
+.status-err{background:rgba(255,138,138,.15);border:1px solid rgba(255,138,138,.4);color:#ff8a8a;}
+.status-info{background:rgba(212,165,116,.1);border:1px solid rgba(212,165,116,.3);color:#d4a574;}
+.field-label{font-size:11px;color:#d4a574;display:block;margin-bottom:4px;font-weight:500;}
+.helper{font-size:11px;color:rgba(212,165,116,.7);margin-top:4px;}
+.bs-hint{font-size:11px;color:#ffd700;margin-top:3px;}
+.low-stock-banner{background:rgba(255,138,138,.12);border:1px solid rgba(255,138,138,.4);color:#ff8a8a;padding:8px 12px;border-radius:8px;margin-bottom:1rem;font-size:12px;}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.modal-overlay.show{display:flex;}
+.modal{background:#1a0a05;border:1.5px solid #d4a574;border-radius:10px;padding:18px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;}
+.modal h3{color:#ffd700;margin:0 0 12px;font-size:16px;}
+.menu-item-row{display:grid;grid-template-columns:1.5fr 1fr 0.7fr 1fr auto;gap:6px;padding:6px 0;border-bottom:1px solid rgba(212,165,116,.15);align-items:center;}
+.menu-item-row .tt-input{padding:6px 8px;font-size:12px;}
+.menu-cat-header{font-size:13px;font-weight:600;color:#ffd700;margin-top:14px;padding-bottom:6px;border-bottom:1px solid rgba(255,215,0,.3);display:flex;justify-content:space-between;align-items:center;}
+.recipe-card{background:rgba(255,215,0,.05);border:1px solid rgba(212,165,116,.3);border-radius:6px;padding:10px;margin-bottom:8px;font-size:12px;}
+.recipe-card .name{color:#ffd700;font-weight:500;margin-bottom:3px;}
+.recipe-card .ing{color:#d4a574;font-size:11px;}
+.search-input{margin-bottom:10px;}
+/* Item picker */
+.picker-cat-header{font-size:13px;font-weight:600;color:#ffd700;margin-top:14px;padding-bottom:6px;border-bottom:1px solid rgba(255,215,0,.3);}
+.picker-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(212,165,116,.1);gap:8px;}
+.picker-name{flex:1;font-size:13px;color:#fff5b8;}
+.picker-price{color:#ffd700;font-size:11px;margin-left:8px;}
+.picker-stock{display:inline-block;margin-left:8px;font-size:10px;color:#7dd87a;}
+.picker-stock.low{color:#ff8a8a;}
+.picker-qty{display:flex;align-items:center;gap:4px;}
+.qty-btn{width:28px;height:28px;border-radius:6px;background:rgba(212,165,116,.2);border:1px solid rgba(212,165,116,.4);color:#ffd700;cursor:pointer;font-size:14px;font-weight:bold;}
+.picker-qty input{width:48px;padding:5px;text-align:center;background:rgba(255,245,184,.08);border:1px solid rgba(212,165,116,.4);color:#fff5b8;border-radius:6px;font-family:inherit;}
+.picker-summary{padding:10px;background:rgba(255,215,0,.05);border-radius:6px;margin-top:10px;color:#ffd700;font-size:13px;text-align:center;}
+/* Inventory */
+.inv-row{display:grid;grid-template-columns:2fr 0.6fr auto;gap:10px;padding:10px;border-bottom:1px solid rgba(212,165,116,.15);align-items:center;}
+.inv-row.low{background:rgba(255,138,138,.08);border-radius:6px;}
+.inv-name{font-size:13px;color:#fff5b8;}
+.inv-meta{display:block;color:#d4a574;font-size:10px;margin-top:2px;}
+.inv-stock{text-align:center;font-size:18px;font-weight:500;color:#7dd87a;}
+.inv-stock.low{color:#ff8a8a;}
+.inv-actions{display:flex;gap:4px;flex-wrap:wrap;}
+.inv-cat-header{font-size:13px;font-weight:600;color:#ffd700;margin-top:14px;padding-bottom:6px;border-bottom:1px solid rgba(255,215,0,.3);}
+@media (max-width:600px){.cards-grid{grid-template-columns:repeat(2,1fr);}.seats-grid{grid-template-columns:repeat(3,1fr);}.charts-grid{grid-template-columns:1fr;}.form-grid-3,.form-grid-4,.form-grid{grid-template-columns:1fr;}.date-row{grid-template-columns:1fr;}.menu-item-row{grid-template-columns:1fr;}.inv-row{grid-template-columns:1fr;}}
+@media print{.tt-bg,.diya,.banner .ig-btn,.sync-pill,.tabs,.tt-btn,#billItems,.toggle-row,.modal-overlay,.low-stock-banner{display:none!important;}.tt-content{padding:0;}.bill-receipt{box-shadow:none;border:none;}}
+
+.credit-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;background:rgba(255,100,100,.15);color:#ff8a8a;border:1px solid rgba(255,100,100,.3);margin-left:6px;}
+.credit-card-item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(212,165,116,.15);gap:8px;}
+.credit-card-item:last-child{border-bottom:none;}
+</style>
+</head>
+<body>
+<div class="tt-root">
+<div class="tt-bg"></div>
+<div class="tt-content">
+<div class="banner">
+<span class="sync-pill"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">Sync off</span></span>
+<a href="https://www.instagram.com/tipsytownktm/" target="_blank" rel="noopener" class="ig-btn">📷 @tipsytownktm</a>
+<span class="swastik left">卐</span>
+<div class="om">ॐ</div>
+<div class="shop-name">TIPSY TOWN</div>
+<div class="tagline">श्री लक्ष्म्यै नमः · May Goddess Lakshmi bless this business</div>
+<span class="swastik right">卐</span>
+</div>
+<div class="date-row">
+<div class="date-card"><div class="date-label">नेपाली मिति (B.S.)</div><div class="date-val" id="bsDate"></div></div>
+<div class="date-card"><div class="date-label">English Date (A.D.)</div><div class="date-val" id="adDate"></div></div>
+</div>
+<div class="tabs">
+<button class="tab active" data-tab="dashboard">Dashboard</button>
+<button class="tab" data-tab="billing">Billing</button>
+<button class="tab" data-tab="ledger">Add Income/Expense</button>
+<button class="tab" data-tab="inventory">📦 Inventory</button>
+<button class="tab" data-tab="history">History</button>
+<button class="tab" data-tab="sync">⚙ Sync Settings</button>
+<button class="tab" data-tab="credit">💳 Credits</button>
+</div>
+
+<!-- DASHBOARD -->
+<div class="tt-pane active" id="pane-dashboard">
+<div class="low-stock-banner" id="lowStock" style="display:none;"></div>
+<div class="cards-grid">
+<div class="metric"><div class="metric-label">Today's Income</div><div class="metric-val" id="mTodayInc" style="color:#7dd87a;">रु ०</div></div>
+<div class="metric"><div class="metric-label">Today's Expense</div><div class="metric-val" id="mTodayExp" style="color:#ff8a8a;">रु ०</div></div>
+<div class="metric"><div class="metric-label">Total Income</div><div class="metric-val" id="mTotInc" style="color:#7dd87a;">रु ०</div></div>
+<div class="metric"><div class="metric-label">Net Cash Flow</div><div class="metric-val" id="mBal" style="color:#ffd700;">रु ०</div></div>
+</div>
+<div class="tt-section" style="padding:10px 14px;">
+<div class="field-label" style="margin:0 0 6px;">Today's payments by method</div>
+<div id="paymentBreakdown" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+</div>
+<div class="charts-grid">
+<div class="chart-box">
+<h4>Expenses by Category</h4>
+<div class="legend-row" id="catLegend"></div>
+<div style="position:relative;width:100%;height:220px;"><canvas id="catChart"></canvas></div>
+</div>
+<div class="chart-box">
+<h4>Income vs Expense (last 7 days)</h4>
+<div class="legend-row">
+<span class="k"><span class="swatch" style="background:#7dd87a;"></span>Income</span>
+<span class="k"><span class="swatch" style="background:#ff8a8a;"></span>Expense</span>
+</div>
+<div style="position:relative;width:100%;height:220px;"><canvas id="trendChart"></canvas></div>
+</div>
+</div>
+</div>
+
+<!-- BILLING -->
+<div class="tt-pane" id="pane-billing">
+<div class="tt-section">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+<h3 style="margin:0;">Select Seat</h3>
+<div style="display:flex;gap:6px;">
+<button class="tt-btn ghost small" id="manageMenuBtn">📋 Manage Menu</button>
+<button class="tt-btn ghost small" id="recipesBtn">🍸 Cocktail Recipes</button>
+</div>
+</div>
+<h4 style="margin-top:0;">Tables</h4>
+<div class="seats-grid" id="tablesGrid"></div>
+<h4>Bar Stools</h4>
+<div class="seats-grid" id="barGrid"></div>
+</div>
+<div class="tt-section">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <h3 style="margin:0;">🔴 Pending Credits</h3>
+    <button class="tt-btn ghost small" id="viewAllCreditsBtn">View All →</button>
+  </div>
+  <div id="billingCreditList"></div>
+</div>
+<div class="tt-section" id="billPanel" style="display:none;">
+<h3 id="billPanelTitle">Bill</h3>
+<div class="form-grid">
+<input class="tt-input" id="custName" placeholder="Customer name (optional)" />
+<input class="tt-input" id="custContact" placeholder="Contact (optional)" />
+</div>
+<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+<button class="tt-btn" id="addItemsBtn">+ Add Items (multi-select)</button>
+<button class="tt-btn ghost" id="addCustomBtn">+ Custom Item</button>
+<button class="tt-btn ghost" id="clearTableBtn">Clear seat</button>
+</div>
+<div class="toggle-row">
+<input type="checkbox" id="vatToggle" />
+<label for="vatToggle">Apply VAT 13%</label>
+<span style="margin-left:14px;"></span>
+<input type="checkbox" id="serviceToggle" />
+<label for="serviceToggle">Apply Service Charge 10%</label>
+</div>
+<div id="billItems"></div>
+<div class="form-grid" style="margin-top:10px;">
+<div>
+<label class="field-label">Payment Method</label>
+<select class="tt-select" id="paymentMethod">
+<option value="">— Select —</option>
+<option value="Cash">💵 Cash</option>
+<option value="Fone Pay">📱 Fone Pay</option>
+<option value="Smart QR">🔲 Smart QR</option>
+<option value="Credit">🔴 Credit (Udharo)</option>
+</select>
+</div>
+<div></div>
+</div>
+<div id="crBillingFields" style="display:none;background:rgba(255,100,100,.08);border:1px solid rgba(255,100,100,.3);border-radius:6px;padding:10px;margin-top:8px;"><label class="field-label" style="color:#ff8a8a;">🔴 Credit Customer</label><input class="tt-input" id="creditCustomerName" placeholder="Customer name *" style="margin-bottom:6px;"/><input class="tt-input" id="creditCustomerContact" placeholder="Contact (optional)"/></div>
+<div id="billReceipt"></div>
+<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+<button class="tt-btn" id="generateBillBtn">Generate Bill</button>
+<button class="tt-btn" id="printBillBtn">🖨 Print</button>
+<button class="tt-btn" id="closeBillBtn" style="background:linear-gradient(180deg,#7a3a1a,#3a1a08);color:#fff5b8;">Close & Record as Income</button>
+</div>
+</div>
+</div>
+
+<!-- LEDGER -->
+<div class="tt-pane" id="pane-ledger">
+<div class="tt-section">
+<h3>Record Income or Expense</h3>
+<div class="form-grid">
+<select class="tt-select" id="lgType">
+<option value="income">Income (आय)</option>
+<option value="expense" selected>Expense (खर्च)</option>
+</select>
+<select class="tt-select" id="lgCategory">
+<option value="Food Stock">Food Stock / Groceries</option>
+<option value="Beverages">Beverages / Drinks Stock</option>
+<option value="Stock Purchase">Stock Purchase</option>
+<option value="Staff Salary">Staff Salary</option>
+<option value="Rent">Rent</option>
+<option value="Utilities">Utilities</option>
+<option value="Maintenance">Maintenance</option>
+<option value="Puja & Donations">Puja / Donations (दान)</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="form-grid-4">
+<input class="tt-input" id="lgAmount" type="number" min="0" step="0.01" placeholder="Amount (रु)" />
+<div>
+<input class="tt-input" id="lgDate" type="date" />
+<div class="bs-hint" id="lgBsDate"></div>
+</div>
+<select class="tt-select" id="lgPayment">
+<option value="">— Payment method —</option>
+<option value="Cash">💵 Cash</option>
+<option value="Fone Pay">📱 Fone Pay</option>
+<option value="Smart QR">🔲 Smart QR</option>
+<option value="Credit">🔴 Credit (Udharo)</option>
+</select>
+<input class="tt-input" id="lgNote" placeholder="Note (optional)" />
+</div>
+<div class="helper">📅 Date defaults to today, but you can pick any past date for backdated entries.</div>
+<button class="tt-btn" id="lgAddBtn" style="margin-top:10px;">Add Entry</button>
+</div>
+</div>
+
+<!-- INVENTORY -->
+<div class="tt-pane" id="pane-inventory">
+<div class="tt-section">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+<h3 style="margin:0;">📦 Inventory</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;">
+<button class="tt-btn small" id="addProductBtn">+ Add Product</button>
+<button class="tt-btn ghost small" id="viewMovementsBtn">📋 Stock Movements</button>
+</div>
+</div>
+<input class="tt-input search-input" id="invSearch" placeholder="Search inventory…" />
+<div id="inventoryList"></div>
+</div>
+<div class="tt-section" style="font-size:12px;color:#d4a574;line-height:1.7;">
+<strong style="color:#ffd700;">How it works:</strong> Selling a menu item that's linked to a product (you'll see "stock: N" next to it) auto-deducts from inventory. Click <strong>+ Stock</strong> when you receive new supply (option to log it as expense). Click <strong>Adjust</strong> if your physical count differs (damage, breakage). All movements are logged and synced to the sheet.
+</div>
+</div>
+
+<!-- HISTORY -->
+<div class="tt-pane" id="pane-history">
+<div class="tt-section">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+<h3 style="margin:0;">Transaction History</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;">
+<button class="tt-btn ghost small" id="exportCsvBtn">Download CSV</button>
+<button class="tt-btn danger small" id="resetAllBtn">Reset All</button>
+</div>
+</div>
+<div class="form-grid-3" style="margin-bottom:10px;">
+<select class="tt-select" id="histFilter">
+<option value="all">All types</option>
+<option value="income">Income only</option>
+<option value="expense">Expense only</option>
+</select>
+<input class="tt-input" id="histDateFrom" type="date" placeholder="From" title="From date" />
+<input class="tt-input" id="histDateTo" type="date" placeholder="To" title="To date" />
+</div>
+<div class="helper" style="margin-bottom:10px;">Click ✎ to edit any transaction (amount, date, payment method, note). Edits sync to the sheet.</div>
+<div id="historyList"></div>
+</div>
+</div>
+
+<!-- SYNC -->
+<div class="tt-pane" id="pane-sync">
+<div class="tt-section">
+  <h3>⚙ Connect to Google Sheets</h3>
+  <p style="font-size:12px;color:#d4a574;line-height:1.6;margin-top:0;">
+    <strong style="color:#ffd700;">v3 — Two-Way Sync:</strong> Dashboard ↔ Google Sheets. Deploy the new <strong>Code.gs v3</strong> from this chat before using Pull from Sheet.
+  </p>
+  <div style="margin-bottom:12px;">
+    <label class="field-label">① Web App URL</label>
+    <input class="tt-input" id="syncUrl" placeholder="https://script.google.com/macros/s/AKfy.../exec" />
+  </div>
+  <div style="margin-bottom:12px;">
+    <label class="field-label">② Secret Token</label>
+    <input class="tt-input" id="syncToken" type="password" placeholder="Your SECRET_TOKEN from Code.gs" />
+  </div>
+  <div class="toggle-row">
+    <input type="checkbox" id="syncEnabled" />
+    <label for="syncEnabled">③ Enable auto-sync</label>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+    <button class="tt-btn" id="saveSyncBtn">④ Save & Test</button>
+    <button class="tt-btn ghost" id="resyncBtn">⬆ Push All to Sheet</button>
+    <a class="tt-btn ghost" href="https://docs.google.com/spreadsheets/d/1SVuZRqs8G5v2Zt2szCAq6_jpHkKP-8ebrtB9y2ZsVPc/edit" target="_blank" style="text-decoration:none;display:inline-block;">Open Sheet ↗</a>
+  </div>
+  <div id="syncStatus"></div>
+</div>
+
+<!-- TWO-WAY SYNC SECTION -->
+<div class="tt-section" style="margin-top:1rem;">
+  <h3>🔄 Pull from Google Sheet → Dashboard</h3>
+  <p style="font-size:12px;color:#d4a574;line-height:1.6;margin-top:0;">
+    Pulls data from your Google Sheet and loads it into the dashboard. <strong style="color:#ffd700;">This will replace your current local data.</strong> Use this when you have data in the sheet that's not on this device.
+  </p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+    <button class="tt-btn ghost" id="pullTxBtn" style="border-color:rgba(125,216,122,.5);color:#7dd87a;">
+      ⬇ Pull Transactions
+    </button>
+    <button class="tt-btn ghost" id="pullInvBtn" style="border-color:rgba(255,215,0,.5);color:#ffd700;">
+      ⬇ Pull Inventory
+    </button>
+    <button class="tt-btn ghost" id="pullMovBtn" style="border-color:rgba(68,136,255,.5);color:#4488ff;">
+      ⬇ Pull Movements
+    </button>
+    <button class="tt-btn ghost" id="pullCrBtn" style="border-color:rgba(255,100,100,.5);color:#ff8a8a;">
+      ⬇ Pull Credits
+    </button>
+  </div>
+  <button class="tt-btn" id="pullAllBtn" style="width:100%;background:linear-gradient(180deg,#1a4a1a,#0d2e0d);border:1px solid #7dd87a;color:#7dd87a;margin-bottom:8px;">
+    ⬇⬇ Pull ALL from Sheet (Full Restore)
+  </button>
+  <div id="pullStatus"></div>
+  <div style="margin-top:10px;font-size:11px;color:#7a6040;line-height:1.6;">
+    <strong style="color:#d4a574;">How two-way sync works:</strong><br>
+    • <strong>Auto-sync ON</strong> → every new bill, expense, stock change pushes to sheet instantly<br>
+    • <strong>Push All</strong> → sends everything from dashboard to sheet (overwrites sheet)<br>
+    • <strong>Pull from Sheet</strong> → loads sheet data into dashboard (overwrites local)<br>
+    • Use Pull when switching devices or restoring data from sheet
+  </div>
+</div>
+</div>
+
+</div>
+
+<!-- ITEM PICKER MODAL -->
+<div class="modal-overlay" id="itemPickerModal">
+<div class="modal" style="max-width:600px;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+<h3 style="margin:0;">Pick Items</h3>
+<button class="tt-btn ghost small" data-close-modal>✕ Close</button>
+</div>
+<input class="tt-input search-input" id="itemPickerSearch" placeholder="Search menu…" />
+<div id="itemPicker" style="max-height:50vh;overflow-y:auto;"></div>
+<div class="picker-summary" id="pickerSummary">Pick items above</div>
+<div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+<button class="tt-btn ghost" data-close-modal>Cancel</button>
+<button class="tt-btn" id="confirmAddBtn" disabled>Add Selected to Bill</button>
+</div>
+</div>
+</div>
+
+<!-- EDIT TRANSACTION MODAL -->
+<div class="modal-overlay" id="editModal">
+<div class="modal" style="max-width:520px;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+<h3 style="margin:0;">✎ Edit Transaction</h3>
+<button class="tt-btn ghost small" data-close-modal>✕ Close</button>
+</div>
+<div class="form-grid">
+<div><label class="field-label">Type</label><select class="tt-select" id="editType"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+<div><label class="field-label">Category</label><select class="tt-select" id="editCategory"></select></div>
+</div>
+<div class="form-grid">
+<div><label class="field-label">Amount (रु)</label><input class="tt-input" id="editAmount" type="number" min="0" step="0.01" /></div>
+<div><label class="field-label">Date</label><input class="tt-input" id="editDate" type="date" /><div class="bs-hint" id="editBsDate"></div></div>
+</div>
+<div class="form-grid">
+<div><label class="field-label">Payment Method</label><select class="tt-select" id="editPayment"><option value="">— None —</option><option value="Cash">💵 Cash</option><option value="Fone Pay">📱 Fone Pay</option><option value="Smart QR">🔲 Smart QR</option></select></div>
+<div><label class="field-label">Note</label><input class="tt-input" id="editNote" /></div>
+</div>
+<div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+<button class="tt-btn ghost" data-close-modal>Cancel</button>
+<button class="tt-btn" id="saveEditBtn">Save Changes</button>
+</div>
+</div>
+</div>
+
+<!-- MOVEMENTS MODAL -->
+<div class="modal-overlay" id="movementsModal">
+<div class="modal">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+<h3 style="margin:0;">📋 Stock Movements</h3>
+<button class="tt-btn ghost small" data-close-modal>✕ Close</button>
+</div>
+<div id="movementsList"></div>
+</div>
+</div>
+
+<!-- MENU MODAL -->
+<div class="modal-overlay" id="menuModal">
+<div class="modal">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+<h3 style="margin:0;">📋 Manage Menu</h3>
+<button class="tt-btn ghost small" data-close-modal>✕ Close</button>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+<button class="tt-btn small" id="addItemToMenuBtn">+ Add new item</button>
+<button class="tt-btn ghost small" id="resetMenuBtn">Reset to default</button>
+</div>
+<input class="tt-input search-input" id="menuSearch" placeholder="Search menu…" />
+<div class="helper" style="margin-bottom:8px;">Columns: Name · Category · Price · Linked Product ID (for inventory deduction, e.g. P-TUBORG)</div>
+<div id="menuEditor"></div>
+</div>
+</div>
+
+<!-- RECIPES MODAL -->
+<div class="modal-overlay" id="recipesModal">
+<div class="modal">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+<h3 style="margin:0;">🍸 Cocktail & Mocktail Recipes</h3>
+<button class="tt-btn ghost small" data-close-modal>✕ Close</button>
+</div>
+<input class="tt-input search-input" id="recipeSearch" placeholder="Search recipes…" />
+<div id="recipesList"></div>
+</div>
+</div>
+
+
+<div class="tt-pane" id="pane-credit">
+  <div class="cards-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="metric"><div class="metric-label">Total Credit Given</div><div class="metric-val" id="crTotalGiven" style="color:#ff8a8a;">रु ०</div></div>
+    <div class="metric"><div class="metric-label">Total Recovered</div><div class="metric-val" id="crTotalRec" style="color:#7dd87a;">रु ०</div></div>
+    <div class="metric"><div class="metric-label">Outstanding</div><div class="metric-val" id="crOutstanding" style="color:#ffd700;">रु ०</div></div>
+  </div>
+  <div class="tt-section">
+    <h3>➕ Add Credit Entry</h3>
+    <div class="form-grid">
+      <div><label class="field-label">Customer Name *</label><input class="tt-input" id="crName" placeholder="e.g. Ram Bahadur"/></div>
+      <div><label class="field-label">Contact (optional)</label><input class="tt-input" id="crContact" placeholder="Phone number"/></div>
+    </div>
+    <div class="form-grid-3">
+      <div><label class="field-label">Credit Type</label>
+        <select class="tt-select" id="crType">
+          <option value="bill">🧾 Unpaid Bill</option>
+          <option value="inventory">📦 Inventory Item Given</option>
+          <option value="cash">💵 Cash Given</option>
+          <option value="other">📝 Other</option>
+        </select>
+      </div>
+      <div><label class="field-label">Amount (रु) *</label><input class="tt-input" type="number" id="crAmount" placeholder="0"/></div>
+      <div><label class="field-label">Date</label><input class="tt-input" type="date" id="crDate"/></div>
+    </div>
+    <div id="crInvSection" style="display:none;background:rgba(255,215,0,.04);border:1px solid rgba(212,165,116,.2);border-radius:6px;padding:10px;margin-bottom:8px;">
+      <label class="field-label">Select Inventory Item</label>
+      <select class="tt-select" id="crInvItem" style="margin-bottom:6px;"><option value="">— Select item —</option></select>
+      <div class="form-grid">
+        <div><label class="field-label">Quantity</label><input class="tt-input" type="number" id="crInvQty" value="1" min="1"/></div>
+        <div><label class="field-label">Unit Price (auto)</label><input class="tt-input" id="crInvPrice" readonly style="color:#ffd700;" placeholder="Select item first"/></div>
+      </div>
+    </div>
+    <div><label class="field-label">Note (optional)</label><input class="tt-input" id="crNote" placeholder="e.g. Will pay on Friday"/></div>
+    <button class="tt-btn" id="crAddBtn" style="margin-top:10px;">Add Credit Entry</button>
+  </div>
+  <div class="tt-section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <h3 style="margin:0;">📋 Credit Records</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <select class="tt-select" id="crFilter" style="width:150px;"><option value="all">All</option><option value="pending">Pending</option><option value="settled">Settled</option></select>
+        <input class="tt-input" id="crSearch" placeholder="Search name..." style="width:150px;"/>
+      </div>
+    </div>
+    <div id="creditList"></div>
+  </div>
+</div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+(function(){
+
+  var _m={};
+  var LS={
+    get:function(k){try{var v=localStorage.getItem(k);return v!==null?v:(_m[k]||null);}catch(e){return _m[k]||null;}},
+    set:function(k,v){_m[k]=v;try{localStorage.setItem(k,v);}catch(e){}},
+  };
+
+  // ============ DEFAULT MENU ============
+  const DEFAULT_MENU=[
+    {cat:'Quick Bites',name:'Buff Sukuti',price:250,linkedProduct:''},
+    {cat:'Quick Bites',name:'Chicken Sausage',price:60,linkedProduct:''},
+    {cat:'Quick Bites',name:'Buff Sausage',price:50,linkedProduct:''},
+    {cat:'Quick Bites',name:'Peanut Sadheko',price:150,linkedProduct:''},
+    {cat:'Quick Bites',name:'Plain Peanuts',price:100,linkedProduct:''},
+    {cat:'Quick Bites',name:'Bhatmas Sadheko',price:150,linkedProduct:''},
+    {cat:'Quick Bites',name:'Chau Chau Sadheko',price:150,linkedProduct:''},
+    {cat:'Quick Bites',name:'Chatpate',price:150,linkedProduct:''},
+    {cat:'Quick Bites',name:'Chicken Sadheko',price:300,linkedProduct:''},
+    {cat:'Quick Bites',name:'Chicken Fried',price:300,linkedProduct:''},
+    {cat:'Quick Bites',name:'Green Salad',price:150,linkedProduct:''},
+    {cat:'Quick Bites',name:'Fruit Salad',price:250,linkedProduct:''},
+    {cat:'Feast & Fire',name:'Chicken Sekuwa (per kg)',price:1000,linkedProduct:''},
+    {cat:'Feast & Fire',name:'Pork Sekuwa (per kg)',price:1100,linkedProduct:''},
+    {cat:'Feast & Fire',name:'Veg Fry Rice',price:200,linkedProduct:''},
+    {cat:'Feast & Fire',name:'Chicken Fry Rice',price:300,linkedProduct:''},
+    {cat:'Feast & Fire',name:'Veg Pakauda',price:200,linkedProduct:''},
+    {cat:'Smoke & Clouds',name:'Surya Red',price:30,linkedProduct:'P-SURYA-RED'},
+    {cat:'Smoke & Clouds',name:'Surya Arctic',price:30,linkedProduct:'P-SURYA-ARC'},
+    {cat:'Smoke & Clouds',name:'Surya Light',price:30,linkedProduct:'P-SURYA-LIT'},
+    {cat:'Smoke & Clouds',name:'Shikhar ICE',price:25,linkedProduct:'P-SHIKHAR'},
+    {cat:'Smoke & Clouds',name:'Tipsy Normal Hukka',price:300,linkedProduct:''},
+    {cat:'Smoke & Clouds',name:'Cloud Hukka',price:500,linkedProduct:''},
+    {cat:'Sips & Spirits',name:'Water Bottle',price:30,linkedProduct:'P-WATER'},
+    {cat:'Sips & Spirits',name:'Cold Drinks',price:100,linkedProduct:'P-COKE'},
+    {cat:'Sips & Spirits',name:'Black Coffee (Tipsy Roasted)',price:150,linkedProduct:''},
+    {cat:'Sips & Spirits',name:'Juice',price:150,linkedProduct:''},
+    {cat:'Sacred Brews (Beer)',name:'Tuborg Gold',price:525,linkedProduct:'P-TUBORG'},
+    {cat:'Sacred Brews (Beer)',name:'Gorkha Strong',price:425,linkedProduct:'P-GORKHA-S'},
+    {cat:'Sacred Brews (Beer)',name:'Gorkha Mini',price:230,linkedProduct:'P-GORKHA-M'},
+    {cat:'Sacred Brews (Beer)',name:'Barashinge',price:525,linkedProduct:'P-BARA'},
+    {cat:'Spirits Altar',name:'Black Oak (Quarter)',price:475,linkedProduct:'P-BLACKOAK-Q'},
+    {cat:'Spirits Altar',name:'Black Oak (Full)',price:1800,linkedProduct:'P-BLACKOAK-F'},
+    {cat:'Spirits Altar',name:'Golden Oak (Quarter)',price:450,linkedProduct:'P-GOLDOAK-Q'},
+    {cat:'Spirits Altar',name:'Golden Oak (Full)',price:1600,linkedProduct:'P-GOLDOAK-F'},
+    {cat:'Spirits Altar',name:'Mustang Vodka (Quarter)',price:425,linkedProduct:'P-MUSTANG-Q'},
+    {cat:'Spirits Altar',name:'Mustang Vodka (Full)',price:1500,linkedProduct:'P-MUSTANG-F'},
+    {cat:'Spirits Altar',name:'Challenger (Quarter)',price:450,linkedProduct:'P-CHAL-Q'},
+    {cat:'Spirits Altar',name:'Challenger (Full)',price:1600,linkedProduct:'P-CHAL-F'},
+    {cat:'Spirits Altar',name:'OD Normal (Quarter)',price:925,linkedProduct:'P-OD-Q'},
+    {cat:'Spirits Altar',name:'OD Normal (Full)',price:3200,linkedProduct:'P-OD-F'},
+    {cat:'Spirits Altar',name:'OD Chimney (Quarter)',price:1100,linkedProduct:'P-ODC-Q'},
+    {cat:'Spirits Altar',name:'OD Chimney (Full)',price:4000,linkedProduct:'P-ODC-F'},
+    {cat:'Spirits Altar',name:'8848 (Quarter)',price:725,linkedProduct:'P-8848-Q'},
+    {cat:'Spirits Altar',name:'8848 (Full)',price:2600,linkedProduct:'P-8848-F'},
+    {cat:'Cocktails (375)',name:'Sex on the Beach',price:375,linkedProduct:''},
+    {cat:'Cocktails (375)',name:'Blue Lagoon',price:375,linkedProduct:''},
+    {cat:'Cocktails (375)',name:'Whiskey Fix',price:375,linkedProduct:''},
+    {cat:'Cocktails (375)',name:'Blinker',price:375,linkedProduct:''},
+    {cat:'Cocktails (375)',name:'Vodka Sunrise',price:375,linkedProduct:''},
+    {cat:'Cocktails (375)',name:'Cosmopolitan',price:375,linkedProduct:''},
+    {cat:'Cocktails (375)',name:'Long Island Iced Tea',price:375,linkedProduct:''},
+    {cat:'Cocktails (375)',name:'Hot Rum Punch',price:375,linkedProduct:''},
+    {cat:'Mocktails (200)',name:'Virgin Mojito',price:200,linkedProduct:''},
+    {cat:'Mocktails (200)',name:'Mango Mint',price:200,linkedProduct:''},
+    {cat:'Mocktails (200)',name:'Virgin Pina Colada',price:200,linkedProduct:''},
+    {cat:'Mocktails (200)',name:'Orange Sunrise',price:200,linkedProduct:''},
+    {cat:'Mocktails (200)',name:'Tipsy Sunset',price:200,linkedProduct:''}
+  ];
+
+  // ============ DEFAULT INVENTORY ============
+  const DEFAULT_INVENTORY=[
+    {id:'P-TUBORG',name:'Tuborg Gold',cat:'Beer',unit:'bottle',stock:24,reorder:6,cost:400},
+    {id:'P-GORKHA-S',name:'Gorkha Strong',cat:'Beer',unit:'bottle',stock:24,reorder:6,cost:320},
+    {id:'P-GORKHA-M',name:'Gorkha Mini',cat:'Beer',unit:'bottle',stock:24,reorder:6,cost:170},
+    {id:'P-BARA',name:'Barashinge',cat:'Beer',unit:'bottle',stock:12,reorder:4,cost:400},
+    {id:'P-SURYA-RED',name:'Surya Red',cat:'Cigarette',unit:'stick',stock:40,reorder:20,cost:22},
+    {id:'P-SURYA-ARC',name:'Surya Arctic',cat:'Cigarette',unit:'stick',stock:40,reorder:20,cost:22},
+    {id:'P-SURYA-LIT',name:'Surya Light',cat:'Cigarette',unit:'stick',stock:40,reorder:20,cost:22},
+    {id:'P-SHIKHAR',name:'Shikhar ICE',cat:'Cigarette',unit:'stick',stock:60,reorder:20,cost:18},
+    {id:'P-WATER',name:'Water Bottle',cat:'Soft Drink',unit:'bottle',stock:24,reorder:8,cost:18},
+    {id:'P-COKE',name:'Cold Drinks',cat:'Soft Drink',unit:'bottle',stock:24,reorder:8,cost:65},
+    {id:'P-BLACKOAK-Q',name:'Black Oak (Quarter)',cat:'Hard Drink',unit:'qtr-btl',stock:6,reorder:2,cost:380},
+    {id:'P-BLACKOAK-F',name:'Black Oak (Full)',cat:'Hard Drink',unit:'full-btl',stock:4,reorder:1,cost:1450},
+    {id:'P-GOLDOAK-Q',name:'Golden Oak (Quarter)',cat:'Hard Drink',unit:'qtr-btl',stock:6,reorder:2,cost:360},
+    {id:'P-GOLDOAK-F',name:'Golden Oak (Full)',cat:'Hard Drink',unit:'full-btl',stock:4,reorder:1,cost:1300},
+    {id:'P-MUSTANG-Q',name:'Mustang Vodka (Quarter)',cat:'Hard Drink',unit:'qtr-btl',stock:6,reorder:2,cost:340},
+    {id:'P-MUSTANG-F',name:'Mustang Vodka (Full)',cat:'Hard Drink',unit:'full-btl',stock:4,reorder:1,cost:1200},
+    {id:'P-CHAL-Q',name:'Challenger (Quarter)',cat:'Hard Drink',unit:'qtr-btl',stock:6,reorder:2,cost:360},
+    {id:'P-CHAL-F',name:'Challenger (Full)',cat:'Hard Drink',unit:'full-btl',stock:4,reorder:1,cost:1300},
+    {id:'P-OD-Q',name:'OD Normal (Quarter)',cat:'Hard Drink',unit:'qtr-btl',stock:4,reorder:1,cost:750},
+    {id:'P-OD-F',name:'OD Normal (Full)',cat:'Hard Drink',unit:'full-btl',stock:3,reorder:1,cost:2600},
+    {id:'P-ODC-Q',name:'OD Chimney (Quarter)',cat:'Hard Drink',unit:'qtr-btl',stock:3,reorder:1,cost:900},
+    {id:'P-ODC-F',name:'OD Chimney (Full)',cat:'Hard Drink',unit:'full-btl',stock:2,reorder:1,cost:3200},
+    {id:'P-8848-Q',name:'8848 (Quarter)',cat:'Hard Drink',unit:'qtr-btl',stock:4,reorder:1,cost:580},
+    {id:'P-8848-F',name:'8848 (Full)',cat:'Hard Drink',unit:'full-btl',stock:3,reorder:1,cost:2100}
+  ];
+
+  const RECIPES=[
+    {name:'Sex on the Beach',price:375,ing:'Vodka, Orange Juice, Grenadine, Cranberry, Ice'},
+    {name:'Blue Lagoon',price:375,ing:'Vodka, Lime Juice, Blue Curacao, Sprite, Ice'},
+    {name:'Whiskey Fix',price:375,ing:'Whiskey, Lemon Juice, Simple Syrup, Crushed Ice, Mint, Lemon'},
+    {name:'Blinker',price:375,ing:'Whiskey, Grenadine, Grapefruit Juice, Ice'},
+    {name:'Vodka Sunrise',price:375,ing:'Vodka, Lime Juice, Orange Juice, Grenadine, Ice'},
+    {name:'Cosmopolitan',price:375,ing:'Vodka, Triple Sec, Cranberry Juice, Lime Juice, Ice'},
+    {name:'Long Island Iced Tea',price:375,ing:'Vodka, Rum, Tequila, Gin, Triple Sec, Lemon Juice, Cola'},
+    {name:'Hot Rum Punch',price:375,ing:'Rum, Fresh Lemon Juice, Honey, Hot Water'},
+    {name:'Virgin Mojito',price:200,ing:'Lemon Juice, Sugar, Mint, Ice, Sprite'},
+    {name:'Mango Mint',price:200,ing:'Mango Juice, Mint, Lemon Juice, Soda Water, Ice'},
+    {name:'Virgin Pina Colada',price:200,ing:'Pineapple Juice, Coconut Milk, Sugar, Ice'},
+    {name:'Orange Sunrise',price:200,ing:'Orange Juice, Grenadine, Ice, Orange Slice'},
+    {name:'Tipsy Sunset',price:200,ing:'Orange Juice, Grenadine, Sprite, Ice, Orange Slice'}
+  ];
+
+  const PAYMENT_METHODS=['Cash','Fone Pay','Smart QR'];
+
+  // ============ DIYAS ============
+  const root=document.querySelector('.tt-root');
+  [[6,8],[14,86],[88,12],[92,82],[48,4],[24,50],[78,48]].forEach(function(p){
+    var d=document.createElement('div');d.className='diya';d.style.left=p[0]+'%';d.style.top=p[1]+'%';d.style.animationDelay=(Math.random()*2)+'s';root.appendChild(d);
+  });
+
+  // ============ B.S. DATE ============
+  const BS_M_NP=['वैशाख','जेठ','असार','साउन','भदौ','असोज','कार्तिक','मंसिर','पुष','माघ','फागुन','चैत'];
+  const BS_M_EN=['Baisakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
+  const NP_DAYS=['आइतवार','सोमवार','मंगलवार','बुधवार','बिहिवार','शुक्रवार','शनिवार'];
+  const ND=['०','१','२','३','४','५','६','७','८','९'];
+  const tn=function(n){return String(n).split('').map(function(c){return /\d/.test(c)?ND[+c]:c;}).join('');};
+  const BS_DATA={2080:[31,32,31,32,31,30,30,30,29,30,29,31],2081:[31,31,32,31,31,31,30,29,30,29,30,30],2082:[31,32,31,32,31,30,30,30,29,30,29,31],2083:[31,31,32,31,31,31,30,29,30,29,30,30],2084:[31,32,31,32,31,30,30,29,30,30,30,30],2085:[31,32,31,32,31,30,30,30,29,30,30,30],2086:[31,32,31,32,31,30,30,30,29,30,29,31],2087:[31,31,32,31,31,31,30,29,30,29,30,30],2088:[31,32,31,32,31,30,30,30,29,30,29,31],2089:[31,31,32,31,31,31,30,29,30,29,30,30],2090:[31,32,31,32,31,30,30,30,29,30,29,31]};
+  const A_AD=Date.UTC(2026,3,14),A_BS={y:2083,m:0,d:1};
+  function adToBs(date){let utc=Date.UTC(date.getFullYear(),date.getMonth(),date.getDate());let diff=Math.round((utc-A_AD)/86400000);let y=A_BS.y,m=A_BS.m,d=A_BS.d;if(diff>=0){while(diff>0){const dim=BS_DATA[y]?BS_DATA[y][m]:30;if(d<dim){d++;diff--;}else{d=1;m++;if(m>11){m=0;y++;}diff--;}}}else{while(diff<0){if(d>1){d--;diff++;}else{m--;if(m<0){m=11;y--;}d=BS_DATA[y]?BS_DATA[y][m]:30;diff++;}}}return {y:y,m:m,d:d,wd:date.getDay()};}
+  const fmtBs=function(d){var b=adToBs(d);return tn(b.d)+' '+BS_M_NP[b.m]+' '+tn(b.y)+', '+NP_DAYS[b.wd];};
+  const fmtBsEn=function(d){var b=adToBs(d);return b.d+' '+BS_M_EN[b.m]+' '+b.y;};
+  const fmtAd=function(d){return d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});};
+  function refreshDates(){var n=new Date();document.getElementById('bsDate').textContent=fmtBs(n);document.getElementById('adDate').textContent=fmtAd(n);}
+  refreshDates();setInterval(refreshDates,60000);
+
+  // ============ STATE ============
+  const K_TX='tipsy:transactions',K_SEAT='tipsy:seats',K_S='tipsy:sync',K_M='tipsy:menu',K_INV='tipsy:inventory',K_MOV='tipsy:movements';
+  let txs=[],movements=[];
+  let seats={};
+  ['T1','T2','T3','T4','T5','B1','B2','B3','B4','B5'].forEach(function(s){seats[s]={items:[],customer:'',contact:''};});
+  let activeSeat=null,catChart,trendChart,menu=[],inventory=[];
+  let sync={url:'',token:'',enabled:false,connected:false};
+
+  const CC={'Sales':'#7dd87a','Food Stock':'#d85a30','Beverages':'#378add','Staff Salary':'#7f77dd','Rent':'#d4537e','Utilities':'#ef9f27','Maintenance':'#888780','Puja & Donations':'#ffd700','Other':'#97c459','Stock Purchase':'#d85a30'};
+  const rs=function(n){return 'रु '+(Math.round(n*100)/100).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});};
+  const esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+  const todayStr=function(){return new Date().toISOString().slice(0,10);};
+
+
+  // ============ CREDIT SYSTEM ============
+  var K_CR='tipsy:credits';
+  var credits=[];
+  var crSettlingId=null;
+  function saveCredits(){LS.set(K_CR,JSON.stringify(credits));syncReplaceCredits();}
+  function loadCredits(){var r=LS.get(K_CR);try{if(r)credits=JSON.parse(r);}catch(e){credits=[];}}
+
+  function renderCreditTab(){
+    try{renderCreditSummary();}catch(e){}
+    try{renderInvDropdown();}catch(e){}
+    try{renderCreditList();}catch(e){}
+    try{renderBillingCredits();}catch(e){}
+  }
+
+  function renderCreditSummary(){
+    var given=credits.reduce(function(s,cr){return s+cr.amount;},0);
+    var rec=credits.reduce(function(s,cr){return s+(cr.paid||0);},0);
+    document.getElementById('crTotalGiven').textContent=rs(given);
+    document.getElementById('crTotalRec').textContent=rs(rec);
+    document.getElementById('crOutstanding').textContent=rs(given-rec);
+  }
+
+  function renderInvDropdown(){
+    var sel=document.getElementById('crInvItem');if(!sel)return;
+    sel.innerHTML='<option value="">— Select item —</option>';
+    inventory.forEach(function(p,idx){
+      var mi=menu.find(function(m){return m.linkedProduct===p.id;});
+      var price=mi?mi.price:(p.cost||0);
+      sel.innerHTML+='<option value="'+idx+'" data-price="'+price+'">'+esc(p.name)+' · रु '+price+' (stock: '+p.stock+')</option>';
+    });
+  }
+
+  function renderCreditList(){
+    var filter=document.getElementById('crFilter').value;
+    var search=(document.getElementById('crSearch').value||'').toLowerCase();
+    var list=credits.slice().sort(function(a,b){return b.id-a.id;});
+    if(filter==='pending')list=list.filter(function(cr){return !cr.settled;});
+    if(filter==='settled')list=list.filter(function(cr){return cr.settled;});
+    if(search)list=list.filter(function(cr){return cr.name.toLowerCase().indexOf(search)>=0;});
+    var el=document.getElementById('creditList');
+    if(!list.length){el.innerHTML='<div class="tt-empty">No records found.</div>';return;}
+    el.innerHTML=list.map(function(cr){
+      var rem=cr.amount-(cr.paid||0);var settled=cr.settled||rem<=0;
+      var ti=cr.type==='bill'?'🧾':cr.type==='inventory'?'📦':cr.type==='cash'?'💵':'📝';
+      return '<div class="credit-card-item">'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:13px;font-weight:500;color:#fff5b8;">'+ti+' '+esc(cr.name)+
+            (settled?'<span class="credit-badge" style="background:rgba(125,216,122,.15);color:#7dd87a;border-color:rgba(125,216,122,.3);">Settled ✓</span>':'<span class="credit-badge">Pending</span>')+
+          '</div>'+
+          '<div class="tx-meta">'+fmtBs(new Date(cr.date))+(cr.contact?' · '+esc(cr.contact):'')+( cr.itemName?' · '+esc(cr.itemName):'')+( cr.note?' · '+esc(cr.note):'')+'</div>'+
+          (cr.paid&&cr.paid>0&&!settled?'<div class="tx-meta" style="color:#7dd87a;">Paid: '+rs(cr.paid)+' · Remaining: '+rs(rem)+'</div>':'')+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'+
+          '<div style="font-weight:600;font-size:14px;color:'+(settled?'#7dd87a':'#ff8a8a')+'">'+(settled?rs(cr.amount):rs(rem))+'</div>'+
+          (!settled?'<button class="tt-btn small" data-cr-settle="'+cr.id+'">💳 Settle</button>':'')+
+          '<button class="tt-btn danger small" data-cr-del="'+cr.id+'">×</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('[data-cr-settle]').forEach(function(b){b.addEventListener('click',function(){openCrSettle(+b.dataset.crSettle);});});
+    el.querySelectorAll('[data-cr-del]').forEach(function(b){b.addEventListener('click',function(){
+      if(!confirm('Delete this credit record?'))return;
+      credits=credits.filter(function(cr){return cr.id!==+b.dataset.crDel;});
+      saveCredits();renderCreditTab();
+    });});
+  }
+
+  function renderBillingCredits(){
+    var el=document.getElementById('billingCreditList');if(!el)return;
+    var pending=credits.filter(function(cr){return !cr.settled;}).slice(0,5);
+    if(!pending.length){el.innerHTML='<div class="tt-empty" style="font-size:12px;">No pending credits 🎉</div>';return;}
+    el.innerHTML=pending.map(function(cr){
+      var rem=cr.amount-(cr.paid||0);
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(212,165,116,.1);font-size:12px;">'+
+        '<div><span style="color:#fff5b8;font-weight:500;">'+esc(cr.name)+'</span><span class="tx-meta" style="margin-left:6px;">'+fmtBs(new Date(cr.date))+'</span></div>'+
+        '<div style="display:flex;align-items:center;gap:6px;"><span style="color:#ff8a8a;font-weight:600;">'+rs(rem)+'</span>'+
+        '<button class="tt-btn small" data-qs="'+cr.id+'" style="font-size:10px;padding:3px 8px;">Settle</button></div>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('[data-qs]').forEach(function(b){b.addEventListener('click',function(){openCrSettle(+b.dataset.qs);});});
+  }
+
+  function openCrSettle(id){
+    var cr=credits.find(function(x){return x.id===id;});if(!cr)return;
+    crSettlingId=id;var rem=cr.amount-(cr.paid||0);
+    document.getElementById('crSettleInfo').innerHTML='<strong style="color:#ffd700;">'+esc(cr.name)+'</strong><br>Total: '+rs(cr.amount)+' · Paid: '+rs(cr.paid||0)+' · <strong>Remaining: '+rs(rem)+'</strong>';
+    document.getElementById('crSettleAmt').value=rem;
+    document.getElementById('crSettleNote').value='';
+    document.getElementById('crSettleModal').classList.add('show');
+  }
+
+  function doSettle(full){
+    var cr=credits.find(function(x){return x.id===crSettlingId;});if(!cr)return;
+    var rem=cr.amount-(cr.paid||0);
+    var amt=full?rem:(parseFloat(document.getElementById('crSettleAmt').value)||0);
+    if(amt<=0){alert('Enter valid amount.');return;}
+    var pay=document.getElementById('crSettlePay').value;
+    var note=document.getElementById('crSettleNote').value.trim();
+    cr.paid=(cr.paid||0)+amt;
+    if(full||cr.paid>=cr.amount){cr.paid=cr.amount;cr.settled=true;}
+    var tx={id:Date.now(),type:'income',category:'Sales',amount:amt,date:todayStr(),payment:pay,note:'Credit recovery · '+cr.name+(note?' · '+note:'')};
+    txs.push(tx);saveTx();syncAppendTx(tx);
+    saveCredits();renderCreditTab();renderDashboard();
+    document.getElementById('crSettleModal').classList.remove('show');
+    alert('Payment of '+rs(amt)+' recorded for '+cr.name+'!'+(cr.settled?' Fully settled!':' Partial.'));
+  }
+
+  document.getElementById('crSettleFullBtn').addEventListener('click',function(){doSettle(true);});
+  document.getElementById('crSettlePartBtn').addEventListener('click',function(){doSettle(false);});
+  document.getElementById('crType').addEventListener('change',function(){
+    document.getElementById('crInvSection').style.display=this.value==='inventory'?'block':'none';
+    if(this.value==='inventory')renderInvDropdown();
+  });
+  document.getElementById('crInvItem').addEventListener('change',function(){
+    var opt=this.options[this.selectedIndex];
+    var price=opt?parseFloat(opt.dataset.price)||0:0;
+    var qty=parseInt(document.getElementById('crInvQty').value)||1;
+    document.getElementById('crInvPrice').value=price?'रु '+price+' each':'';
+    if(price)document.getElementById('crAmount').value=price*qty;
+  });
+  document.getElementById('crInvQty').addEventListener('input',function(){
+    var opt=document.getElementById('crInvItem').options[document.getElementById('crInvItem').selectedIndex];
+    var price=opt?parseFloat(opt.dataset.price)||0:0;
+    if(price)document.getElementById('crAmount').value=price*(parseInt(this.value)||1);
+  });
+  document.getElementById('crAddBtn').addEventListener('click',function(){
+    var name=document.getElementById('crName').value.trim();
+    var contact=document.getElementById('crContact').value.trim();
+    var type=document.getElementById('crType').value;
+    var amt=parseFloat(document.getElementById('crAmount').value)||0;
+    var date=document.getElementById('crDate').value||todayStr();
+    var note=document.getElementById('crNote').value.trim();
+    if(!name){alert('Customer name required!');return;}
+    if(!amt||amt<=0){alert('Enter valid amount!');return;}
+    var cr={id:Date.now(),name:name,contact:contact,type:type,amount:amt,date:date,note:note,paid:0,settled:false};
+    if(type==='inventory'){
+      var idx=parseInt(document.getElementById('crInvItem').value);
+      var qty=parseInt(document.getElementById('crInvQty').value)||1;
+      if(isNaN(idx)||document.getElementById('crInvItem').value===''){alert('Select inventory item!');return;}
+      var p=inventory[idx];
+      cr.itemName=p.name+' × '+qty;cr.inventoryId=p.id;cr.inventoryQty=qty;
+      p.stock=Math.max(0,p.stock-qty);
+      var mov={id:Date.now()+1,date:date,productId:p.id,productName:p.name,type:'credit',qty:-qty,newStock:p.stock,note:'Given on credit to '+name};
+      movements.push(mov);saveInv();saveMov();syncAppendMov(mov);syncReplaceInv();
+    }
+    credits.push(cr);saveCredits();
+    document.getElementById('crName').value='';document.getElementById('crContact').value='';
+    document.getElementById('crAmount').value='';document.getElementById('crNote').value='';
+    document.getElementById('crDate').value=todayStr();
+    renderCreditTab();alert('Credit of '+rs(amt)+' added for '+name+'!');
+  });
+  document.getElementById('crDate').value=todayStr();
+  document.getElementById('crFilter').addEventListener('change',renderCreditList);
+  document.getElementById('crSearch').addEventListener('input',renderCreditList);
+  document.getElementById('viewAllCreditsBtn').addEventListener('click',function(){switchTab('credit');});
+  document.getElementById('paymentMethod').addEventListener('change',function(){
+    document.getElementById('crBillingFields').style.display=this.value==='Credit'?'block':'none';
+  });
+
+  function load(){
+    var r;
+    r=LS.get(K_TX);try{if(r)txs=JSON.parse(r);}catch(e){txs=[];}
+    r=LS.get(K_SEAT);try{if(r){var ss=JSON.parse(r);Object.keys(ss).forEach(function(k){if(seats[k])Object.assign(seats[k],ss[k]);});}}catch(e){}
+    r=LS.get(K_S);try{if(r)sync=Object.assign(sync,JSON.parse(r));}catch(e){}
+    r=LS.get(K_M);try{if(r){menu=JSON.parse(r);}else{menu=DEFAULT_MENU.slice();saveMenu();}}catch(e){menu=DEFAULT_MENU.slice();}
+    r=LS.get(K_INV);try{if(r){inventory=JSON.parse(r);}else{inventory=DEFAULT_INVENTORY.slice();saveInv();}}catch(e){inventory=DEFAULT_INVENTORY.slice();}
+    r=LS.get(K_MOV);try{if(r)movements=JSON.parse(r);}catch(e){movements=[];}
+    try{document.getElementById('syncUrl').value=sync.url||'';}catch(e){}
+    try{document.getElementById('syncToken').value=sync.token||'';}catch(e){}
+    try{document.getElementById('syncEnabled').checked=!!sync.enabled;}catch(e){}
+    loadCredits();pill();renderAll();try{renderCreditTab();}catch(e){}
+  }
+  const saveTx=function(){LS.set(K_TX,JSON.stringify(txs));};
+  const saveSeat=function(){LS.set(K_SEAT,JSON.stringify(seats));};
+  const saveS=function(){LS.set(K_S,JSON.stringify(sync));};
+  const saveMenu=function(){LS.set(K_M,JSON.stringify(menu));};
+  const saveInv=function(){LS.set(K_INV,JSON.stringify(inventory));};
+  const saveMov=function(){LS.set(K_MOV,JSON.stringify(movements));};
+
+  function pill(){var d=document.getElementById('syncDot'),l=document.getElementById('syncLabel');if(!sync.enabled||!sync.url){d.className='sync-dot';l.textContent='Sync off';}else if(sync.connected){d.className='sync-dot on';l.textContent='Sheet synced';}else{d.className='sync-dot err';l.textContent='Sync error';}}
+
+  // ============ SYNC ============
+  const txRow=function(t){return [String(t.id),t.date,fmtBsEn(new Date(t.date)),t.type,t.category,t.amount,t.payment||'',t.note||''];};
+  const invRow=function(p){return [p.id,p.name,p.cat,p.unit,p.stock,p.reorder,p.cost||0];};
+  const movRow=function(m){return [String(m.id),m.date,fmtBsEn(new Date(m.date)),m.productId,m.productName,m.type,m.qty,m.newStock,m.note||''];};
+
+  async function postSync(action,target,payload){
+    if(!sync.url||!sync.token)return {ok:false,error:'Not configured'};
+    try{
+      var body={token:sync.token,action:action,target:target||'transactions'};
+      if(payload)Object.assign(body,payload);
+      var res=await fetch(sync.url,{method:'POST',mode:'cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),redirect:'follow'});
+      var text=await res.text();
+      var data;try{data=JSON.parse(text);}catch(e){return {ok:false,error:'Bad response: '+text.slice(0,80)};}
+      sync.connected=!!data.ok;pill();return data;
+    }catch(e){sync.connected=false;pill();return {ok:false,error:String(e.message||e)};}
+  }
+  async function syncAppendTx(tx){if(!sync.enabled||!sync.url||!sync.token)return;await postSync('append','transactions',{rows:[txRow(tx)]});}
+  async function syncUpdateTx(tx){if(!sync.enabled||!sync.url||!sync.token)return;await postSync('update','transactions',{row:txRow(tx)});}
+  async function syncDeleteTx(id){if(!sync.enabled||!sync.url||!sync.token)return;await postSync('delete','transactions',{id:String(id)});}
+  async function syncAppendMov(m){if(!sync.enabled||!sync.url||!sync.token)return;await postSync('append','movements',{rows:[movRow(m)]});}
+  async function syncReplaceInv(){if(!sync.enabled||!sync.url||!sync.token)return;await postSync('replace','inventory',{rows:inventory.map(invRow)});}
+  async function syncReplaceCredits(){if(!sync.enabled||!sync.url||!sync.token)return;
+    var crRows=credits.map(function(cr){return [String(cr.id),cr.date,cr.name,cr.contact||'',cr.type,cr.amount,cr.paid||0,cr.settled?'true':'false',cr.itemName||'',cr.note||''];});
+    await postSync('replace','credits',{rows:crRows});}
+
+  // ============ TABS ============
+  function switchTab(tabId){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+    document.querySelectorAll('.tt-pane').forEach(function(x){x.classList.remove('active');});
+    var btn=document.querySelector('.tab[data-tab="'+tabId+'"]');
+    if(btn)btn.classList.add('active');
+    var pane=document.getElementById('pane-'+tabId);
+    if(pane)pane.classList.add('active');
+    try{if(tabId==='dashboard')renderCharts();}catch(e){}
+    try{if(tabId==='inventory')renderInventory();}catch(e){}
+    try{if(tabId==='history')renderHistory();}catch(e){}
+    try{if(tabId==='credit')renderCreditTab();}catch(e){}
+  }
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click',function(){switchTab(t.dataset.tab);});
+  });
+
+  // ============ SEATS (Tables + Bar) ============
+  function renderSeats(){
+    var tg=document.getElementById('tablesGrid'),bg=document.getElementById('barGrid');
+    tg.innerHTML='';bg.innerHTML='';
+    ['T1','T2','T3','T4','T5'].forEach(function(s){tg.appendChild(seatCard(s));});
+    ['B1','B2','B3','B4','B5'].forEach(function(s){bg.appendChild(seatCard(s));});
+  }
+  function seatCard(s){
+    var occ=seats[s].items.length>0;
+    var div=document.createElement('div');
+    div.className='seat-card'+(occ?' occupied':'')+(activeSeat===s?' selected':'');
+    var label=s.charAt(0)==='T'?('Table '+s.slice(1)):('Bar '+s.slice(1));
+    div.innerHTML='<div class="seat-num">'+s+'</div><div class="seat-label">'+label+'</div><div class="seat-status">'+(occ?seats[s].items.length+' items':'Available')+'</div>';
+    div.addEventListener('click',function(){activeSeat=s;renderSeats();renderBillPanel();});
+    return div;
+  }
+
+  function renderBillPanel(){
+    var p=document.getElementById('billPanel');
+    if(activeSeat===null){p.style.display='none';return;}
+    p.style.display='block';
+    var label=activeSeat.charAt(0)==='T'?('Table '+activeSeat.slice(1)):('Bar Stool '+activeSeat.slice(1));
+    document.getElementById('billPanelTitle').textContent='Bill — '+label+' ('+activeSeat+')';
+    document.getElementById('custName').value=seats[activeSeat].customer||'';
+    document.getElementById('custContact').value=seats[activeSeat].contact||'';
+    renderBillItems();document.getElementById('billReceipt').innerHTML='';
+  }
+  function renderBillItems(){
+    var list=document.getElementById('billItems'),items=seats[activeSeat].items;
+    if(!items.length){list.innerHTML='<div class="tt-empty">No items added yet. Click "+ Add Items" to pick from menu.</div>';return;}
+    var html='',sub=0;
+    items.forEach(function(it,idx){var ln=it.qty*it.price;sub+=ln;html+='<div class="bill-line"><span>'+esc(it.name)+' <span class="tx-meta">× '+it.qty+'</span></span><span>'+rs(ln)+' <button class="tt-btn ghost small" data-rm="'+idx+'">×</button></span></div>';});
+    html+='<div class="bill-total"><div class="bill-line" style="border:none;"><span>Subtotal</span><span>'+rs(sub)+'</span></div></div>';
+    list.innerHTML=html;
+    list.querySelectorAll('button[data-rm]').forEach(function(b){b.addEventListener('click',function(){seats[activeSeat].items.splice(+b.dataset.rm,1);saveSeat();renderSeats();renderBillItems();});});
+  }
+
+  // ============ MULTI-SELECT ITEMS MODAL ============
+  document.getElementById('addItemsBtn').addEventListener('click',function(){
+    if(activeSeat===null){alert('Select a table or bar stool first.');return;}
+    document.getElementById('itemPickerModal').classList.add('show');
+    renderItemPicker();
+  });
+  document.getElementById('itemPickerSearch').addEventListener('input',renderItemPicker);
+  function renderItemPicker(){
+    var q=(document.getElementById('itemPickerSearch').value||'').toLowerCase();
+    var byCat={};
+    menu.forEach(function(it,idx){
+      if(q&&it.name.toLowerCase().indexOf(q)<0&&it.cat.toLowerCase().indexOf(q)<0)return;
+      if(!byCat[it.cat])byCat[it.cat]=[];
+      byCat[it.cat].push({it:it,idx:idx});
+    });
+    var html='';
+    Object.keys(byCat).forEach(function(cat){
+      html+='<div class="picker-cat-header">'+esc(cat)+'</div>';
+      byCat[cat].forEach(function(o){
+        var stock='';
+        if(o.it.linkedProduct){
+          var p=findProduct(o.it.linkedProduct);
+          if(p){stock='<span class="picker-stock'+(p.stock<=p.reorder?' low':'')+'">stock: '+p.stock+'</span>';}
+        }
+        html+='<div class="picker-row" data-idx="'+o.idx+'">'+
+          '<div class="picker-name">'+esc(o.it.name)+'<span class="picker-price">रु '+o.it.price+'</span>'+stock+'</div>'+
+          '<div class="picker-qty"><button class="qty-btn" data-act="dec" data-idx="'+o.idx+'">−</button>'+
+          '<input type="number" min="0" step="1" value="0" data-qty="'+o.idx+'" />'+
+          '<button class="qty-btn" data-act="inc" data-idx="'+o.idx+'">+</button></div>'+
+        '</div>';
+      });
+    });
+    if(!html)html='<div class="tt-empty">No items match.</div>';
+    var picker=document.getElementById('itemPicker');
+    picker.innerHTML=html;
+    picker.querySelectorAll('.qty-btn').forEach(function(b){b.addEventListener('click',function(){
+      var input=picker.querySelector('input[data-qty="'+b.dataset.idx+'"]');
+      var v=parseInt(input.value)||0;
+      input.value=b.dataset.act==='inc'?v+1:Math.max(0,v-1);
+      updatePickerSummary();
+    });});
+    picker.querySelectorAll('input[data-qty]').forEach(function(i){i.addEventListener('input',updatePickerSummary);});
+    updatePickerSummary();
+  }
+  function updatePickerSummary(){
+    var picker=document.getElementById('itemPicker');
+    var n=0,total=0;
+    picker.querySelectorAll('input[data-qty]').forEach(function(i){
+      var q=parseInt(i.value)||0;if(q<=0)return;
+      var idx=+i.dataset.qty,it=menu[idx];
+      n+=q;total+=q*it.price;
+    });
+    document.getElementById('pickerSummary').textContent=n?(n+' items · '+rs(total)):'Pick items above';
+    document.getElementById('confirmAddBtn').disabled=!n;
+  }
+  document.getElementById('confirmAddBtn').addEventListener('click',function(){
+    var picker=document.getElementById('itemPicker');
+    var added=0;
+    picker.querySelectorAll('input[data-qty]').forEach(function(i){
+      var q=parseInt(i.value)||0;if(q<=0)return;
+      var idx=+i.dataset.qty,it=menu[idx];
+      // Merge with existing if same item exists
+      var existing=seats[activeSeat].items.find(function(x){return x.name===it.name&&x.price===it.price;});
+      if(existing){existing.qty+=q;}
+      else{seats[activeSeat].items.push({name:it.name,qty:q,price:it.price,linkedProduct:it.linkedProduct||''});}
+      added++;
+    });
+    seats[activeSeat].customer=document.getElementById('custName').value.trim();
+    seats[activeSeat].contact=document.getElementById('custContact').value.trim();
+    saveSeat();renderSeats();renderBillItems();
+    document.getElementById('itemPickerModal').classList.remove('show');
+  });
+  document.getElementById('addCustomBtn').addEventListener('click',function(){
+    var name=prompt('Custom item name:');if(!name)return;
+    var price=parseFloat(prompt('Price (रु):','0'))||0;
+    var qty=parseInt(prompt('Quantity:','1'))||1;
+    if(price<=0||qty<=0)return;
+    seats[activeSeat].items.push({name:name,qty:qty,price:price,linkedProduct:''});
+    saveSeat();renderSeats();renderBillItems();
+  });
+
+  document.getElementById('clearTableBtn').addEventListener('click',function(){
+    if(activeSeat===null||!confirm('Clear '+activeSeat+'?'))return;
+    seats[activeSeat]={items:[],customer:'',contact:''};saveSeat();renderSeats();renderBillPanel();
+  });
+
+  // ============ BILL / RECEIPT ============
+  function buildReceipt(payment){
+    var t=seats[activeSeat],sub=t.items.reduce(function(s,i){return s+i.qty*i.price;},0);
+    var uV=document.getElementById('vatToggle').checked,uS=document.getElementById('serviceToggle').checked;
+    var svc=uS?Math.round(sub*0.10*100)/100:0,vat=uV?Math.round((sub+svc)*0.13*100)/100:0;
+    var total=Math.round((sub+svc+vat)*100)/100,now=new Date();
+    var billNo='TT-'+now.getFullYear().toString().slice(-2)+(now.getMonth()+1).toString().padStart(2,'0')+now.getDate().toString().padStart(2,'0')+'-'+activeSeat+'-'+Math.floor(Math.random()*900+100);
+    var rows='';t.items.forEach(function(it){rows+='<div class="row"><span>'+esc(it.name)+' × '+it.qty+'</span><span>'+rs(it.qty*it.price)+'</span></div>';});
+    var extras='';if(uS)extras+='<div class="row"><span>Service Charge (10%)</span><span>'+rs(svc)+'</span></div>';if(uV)extras+='<div class="row"><span>VAT (13%)</span><span>'+rs(vat)+'</span></div>';
+    var label=activeSeat.charAt(0)==='T'?('Table '+activeSeat.slice(1)):('Bar Stool '+activeSeat.slice(1));
+    var paymentLine=payment?('<div class="row"><span>Payment:</span><span>'+esc(payment)+'</span></div>'):'';
+    var html='<div class="bill-receipt" id="receiptToPrint"><h4>॥ श्री गणेशाय नमः ॥</h4><div class="center" style="font-weight:bold;font-size:16px;">TIPSY TOWN</div><div class="center" style="font-size:10px;">Contact: 9767196807 · PAN: 108241349</div><div class="center" style="font-size:10px;">Instagram: @tipsytownktm</div><hr><div class="row"><span>Bill No:</span><span>'+billNo+'</span></div><div class="row"><span>Seat:</span><span>'+label+' ('+activeSeat+')</span></div><div class="row"><span>B.S.:</span><span>'+fmtBs(now)+'</span></div><div class="row"><span>A.D.:</span><span>'+fmtAd(now)+'</span></div>'+(t.customer?'<div class="row"><span>Customer:</span><span>'+esc(t.customer)+'</span></div>':'')+(t.contact?'<div class="row"><span>Contact:</span><span>'+esc(t.contact)+'</span></div>':'')+'<hr>'+rows+'<hr><div class="row"><span>Subtotal</span><span>'+rs(sub)+'</span></div>'+extras+'<div class="row" style="font-weight:bold;font-size:14px;border-top:1px solid #8b1818;padding-top:4px;margin-top:4px;"><span>TOTAL</span><span>'+rs(total)+'</span></div>'+paymentLine+'<hr><div class="center" style="font-size:11px;font-style:italic;">धन्यवाद! Thank you · Visit again!</div><div class="center" style="font-size:11px;">शुभ लाभ · ॐ</div></div>';
+    return {html:html,total:total,billNo:billNo};
+  }
+  document.getElementById('generateBillBtn').addEventListener('click',function(){if(activeSeat===null||!seats[activeSeat].items.length)return;document.getElementById('billReceipt').innerHTML=buildReceipt(document.getElementById('paymentMethod').value).html;});
+  document.getElementById('printBillBtn').addEventListener('click',function(){
+    if(activeSeat===null||!seats[activeSeat].items.length)return;
+    document.getElementById('billReceipt').innerHTML=buildReceipt(document.getElementById('paymentMethod').value).html;
+    setTimeout(function(){window.print();},100);
+  });
+
+  document.getElementById('closeBillBtn').addEventListener('click',async function(){
+    if(activeSeat===null||!seats[activeSeat].items.length)return;
+    var payment=document.getElementById('paymentMethod').value;
+    if(!payment){alert('Select a payment method.');return;}
+    var r=buildReceipt(payment);document.getElementById('billReceipt').innerHTML=r.html;
+    var label=activeSeat.charAt(0)==='T'?('Table '+activeSeat.slice(1)):('Bar '+activeSeat.slice(1));
+    if(payment==='Credit'){
+      var crName=document.getElementById('creditCustomerName').value.trim();
+      var crContact=document.getElementById('creditCustomerContact').value.trim();
+      if(!crName){alert('Enter customer name for credit!');document.getElementById('creditCustomerName').focus();return;}
+      if(!confirm('Record रु '+r.total+' as CREDIT for '+crName+'?'))return;
+      var cr={id:Date.now(),name:crName,contact:crContact,type:'bill',amount:r.total,date:todayStr(),
+        note:label+' · '+r.billNo,paid:0,settled:false,
+        itemName:seats[activeSeat].items.map(function(i){return i.name+' ×'+i.qty;}).join(', ')};
+      credits.push(cr);saveCredits();
+      seats[activeSeat].items.forEach(function(it){
+        if(!it.linkedProduct)return;
+        var p=findProduct(it.linkedProduct);if(!p)return;
+        p.stock=Math.max(0,p.stock-it.qty);
+        var mov={id:Date.now()+Math.floor(Math.random()*999),date:todayStr(),productId:p.id,productName:p.name,type:'credit-sale',qty:-it.qty,newStock:p.stock,note:'Credit to '+crName};
+        movements.push(mov);syncAppendMov(mov);
+      });
+      seats[activeSeat]={items:[],customer:'',contact:''};
+      saveInv();saveMov();syncReplaceInv();saveSeat();
+      activeSeat=null;renderAll();renderCreditTab();switchTab('credit');
+      document.getElementById('creditCustomerName').value='';
+      document.getElementById('creditCustomerContact').value='';
+      return;
+    }
+    if(!confirm('Close '+activeSeat+' and record रु '+r.total+' as income via '+payment+'?'))return;
+    var tx={id:Date.now(),type:'income',category:'Sales',amount:r.total,date:todayStr(),payment:payment,note:label+(seats[activeSeat].customer?' · '+seats[activeSeat].customer:'')+' · '+r.billNo};
+    txs.push(tx);
+    // Auto-deduct linked inventory
+    var deductedItems=seats[activeSeat].items.slice();
+    deductedItems.forEach(function(it){
+      if(!it.linkedProduct)return;
+      var p=findProduct(it.linkedProduct);if(!p)return;
+      p.stock=Math.max(0,p.stock-it.qty);
+      var mov={id:Date.now()+Math.floor(Math.random()*1000),date:todayStr(),productId:p.id,productName:p.name,type:'sale',qty:-it.qty,newStock:p.stock,note:'Sold via '+activeSeat+' · '+r.billNo};
+      movements.push(mov);syncAppendMov(mov);
+    });
+    seats[activeSeat]={items:[],customer:'',contact:''};
+    saveTx();saveSeat();saveInv();saveMov();syncAppendTx(tx);syncReplaceInv();
+    activeSeat=null;renderAll();
+    switchTab('dashboard');
+  });
+
+  // ============ LEDGER (with backdate) ============
+  document.getElementById('lgDate').value=todayStr();
+  document.getElementById('lgType').addEventListener('change',function(e){
+    var sel=document.getElementById('lgCategory');
+    if(e.target.value==='income')sel.innerHTML='<option value="Sales">Sales</option><option value="Other">Other Income</option>';
+    else sel.innerHTML='<option value="Food Stock">Food Stock / Groceries</option><option value="Beverages">Beverages / Drinks Stock</option><option value="Stock Purchase">Stock Purchase</option><option value="Staff Salary">Staff Salary</option><option value="Rent">Rent</option><option value="Utilities">Utilities</option><option value="Maintenance">Maintenance</option><option value="Puja & Donations">Puja / Donations (दान)</option><option value="Other">Other</option>';
+    updateLgBs();
+  });
+  document.getElementById('lgDate').addEventListener('change',updateLgBs);
+  function updateLgBs(){
+    var d=document.getElementById('lgDate').value;
+    document.getElementById('lgBsDate').textContent=d?fmtBs(new Date(d)):'';
+  }
+  updateLgBs();
+
+  document.getElementById('lgAddBtn').addEventListener('click',function(){
+    var type=document.getElementById('lgType').value,cat=document.getElementById('lgCategory').value;
+    var amt=parseFloat(document.getElementById('lgAmount').value),date=document.getElementById('lgDate').value||todayStr();
+    var note=document.getElementById('lgNote').value.trim(),payment=document.getElementById('lgPayment').value;
+    if(!amt||amt<=0){document.getElementById('lgAmount').focus();return;}
+    var tx={id:Date.now(),type:type,category:cat,amount:Math.round(amt*100)/100,date:date,payment:payment,note:note};
+    txs.push(tx);
+    document.getElementById('lgAmount').value='';document.getElementById('lgNote').value='';
+    saveTx();syncAppendTx(tx);renderAll();
+  });
+
+  // ============ HISTORY (with edit) ============
+  document.getElementById('histFilter').addEventListener('change',renderHistory);
+  document.getElementById('histDateFrom').addEventListener('change',renderHistory);
+  document.getElementById('histDateTo').addEventListener('change',renderHistory);
+  document.getElementById('resetAllBtn').addEventListener('click',function(){
+    if(!confirm('Reset ALL local transactions and seats? (Sheet rows remain.)'))return;
+    txs=[];['T1','T2','T3','T4','T5','B1','B2','B3','B4','B5'].forEach(function(s){seats[s]={items:[],customer:'',contact:''};});
+    saveTx();saveSeat();activeSeat=null;renderAll();
+  });
+  document.getElementById('exportCsvBtn').addEventListener('click',function(){
+    var rows=[['ID','Date (A.D.)','Date (B.S.)','Type','Category','Amount','Payment','Note']];
+    txs.slice().sort(function(a,b){return a.date.localeCompare(b.date)||a.id-b.id;}).forEach(function(t){rows.push(txRow(t));});
+    var csv='\ufeff'+rows.map(function(r){return r.map(function(c){var s=String(c==null?'':c);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(',');}).join('\n');
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download='tipsy-town-'+todayStr()+'.csv';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  });
+
+  function renderHistory(){
+    var f=document.getElementById('histFilter').value,list=document.getElementById('historyList');
+    var fromD=document.getElementById('histDateFrom').value,toD=document.getElementById('histDateTo').value;
+    var items=txs.slice().sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id;});
+    if(f!=='all')items=items.filter(function(t){return t.type===f;});
+    if(fromD)items=items.filter(function(t){return t.date>=fromD;});
+    if(toD)items=items.filter(function(t){return t.date<=toD;});
+    if(!items.length){list.innerHTML='<div class="tt-empty">No transactions match.</div>';return;}
+    list.innerHTML=items.map(function(t){
+      var sg=t.type==='income'?'+':'−',cl=t.type==='income'?'#7dd87a':'#ff8a8a',bs=fmtBs(new Date(t.date)),nt=t.note?' · '+esc(t.note):'';
+      var pay=t.payment?' <span class="pay-pill">'+esc(t.payment)+'</span>':'';
+      return '<div class="tx-row"><div style="flex:1;min-width:0;"><div><span class="cat-pill">'+esc(t.category)+'</span>'+pay+'<span style="margin-left:6px;">'+esc(t.type==='income'?'Income':'Expense')+'</span>'+nt+'</div><div class="tx-meta">'+bs+' · '+t.date+'</div></div><div style="display:flex;gap:6px;align-items:center;"><div style="color:'+cl+';font-weight:500;">'+sg+rs(t.amount)+'</div><button class="tt-btn ghost small" data-edit="'+t.id+'">✎</button><button class="tt-btn ghost small" data-del="'+t.id+'">×</button></div></div>';
+    }).join('');
+    list.querySelectorAll('button[data-edit]').forEach(function(b){b.addEventListener('click',function(){openEditModal(+b.dataset.edit);});});
+    list.querySelectorAll('button[data-del]').forEach(function(b){b.addEventListener('click',function(){
+      if(!confirm('Delete this transaction?'))return;
+      var id=+b.dataset.del;
+      txs=txs.filter(function(t){return t.id!=id;});
+      saveTx();syncDeleteTx(id);renderAll();
+    });});
+  }
+
+  // ============ EDIT TRANSACTION MODAL ============
+  var editingId=null;
+  function openEditModal(id){
+    var tx=txs.find(function(t){return t.id===id;});if(!tx)return;
+    editingId=id;
+    document.getElementById('editType').value=tx.type;
+    refreshEditCategory(tx.type,tx.category);
+    document.getElementById('editAmount').value=tx.amount;
+    document.getElementById('editDate').value=tx.date;
+    document.getElementById('editPayment').value=tx.payment||'';
+    document.getElementById('editNote').value=tx.note||'';
+    document.getElementById('editBsDate').textContent=fmtBs(new Date(tx.date));
+    document.getElementById('editModal').classList.add('show');
+  }
+  function refreshEditCategory(type,selected){
+    var sel=document.getElementById('editCategory');
+    if(type==='income')sel.innerHTML='<option value="Sales">Sales</option><option value="Other">Other Income</option>';
+    else sel.innerHTML='<option value="Food Stock">Food Stock / Groceries</option><option value="Beverages">Beverages / Drinks Stock</option><option value="Stock Purchase">Stock Purchase</option><option value="Staff Salary">Staff Salary</option><option value="Rent">Rent</option><option value="Utilities">Utilities</option><option value="Maintenance">Maintenance</option><option value="Puja & Donations">Puja / Donations (दान)</option><option value="Other">Other</option>';
+    if(selected)sel.value=selected;
+  }
+  document.getElementById('editType').addEventListener('change',function(e){refreshEditCategory(e.target.value);});
+  document.getElementById('editDate').addEventListener('change',function(e){document.getElementById('editBsDate').textContent=e.target.value?fmtBs(new Date(e.target.value)):'';});
+  document.getElementById('saveEditBtn').addEventListener('click',function(){
+    var tx=txs.find(function(t){return t.id===editingId;});if(!tx)return;
+    tx.type=document.getElementById('editType').value;
+    tx.category=document.getElementById('editCategory').value;
+    tx.amount=parseFloat(document.getElementById('editAmount').value)||0;
+    tx.date=document.getElementById('editDate').value||todayStr();
+    tx.payment=document.getElementById('editPayment').value;
+    tx.note=document.getElementById('editNote').value.trim();
+    saveTx();syncUpdateTx(tx);renderAll();
+    document.getElementById('editModal').classList.remove('show');
+  });
+
+  // ============ DASHBOARD ============
+  function renderDashboard(){
+    var today=todayStr();
+    var tI=txs.filter(function(t){return t.date===today&&t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);
+    var tE=txs.filter(function(t){return t.date===today&&t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
+    var TI=txs.filter(function(t){return t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);
+    var TE=txs.filter(function(t){return t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);
+    document.getElementById('mTodayInc').textContent=rs(tI);
+    document.getElementById('mTodayExp').textContent=rs(tE);
+    document.getElementById('mTotInc').textContent=rs(TI);
+    var bal=TI-TE,b=document.getElementById('mBal');
+    b.textContent=rs(bal);b.style.color=bal>=0?'#ffd700':'#ff8a8a';
+    // Payment breakdown today
+    var byPay={};
+    txs.filter(function(t){return t.date===today&&t.type==='income';}).forEach(function(t){var p=t.payment||'Unspecified';byPay[p]=(byPay[p]||0)+t.amount;});
+    var pb=document.getElementById('paymentBreakdown');
+    var keys=Object.keys(byPay);
+    pb.innerHTML=keys.length?keys.map(function(k){return '<span class="pay-tag">'+esc(k)+': '+rs(byPay[k])+'</span>';}).join(''):'<span style="color:rgba(243,226,189,.4);font-size:11px;">No income today yet</span>';
+    // Low stock alert
+    var low=inventory.filter(function(p){return p.stock<=p.reorder;});
+    var ls=document.getElementById('lowStock');
+    if(low.length){
+      ls.innerHTML='<strong style="color:#ff8a8a;">⚠ Low stock:</strong> '+low.map(function(p){return esc(p.name)+' ('+p.stock+'/'+p.reorder+')';}).join(' · ');
+      ls.style.display='block';
+    } else { ls.style.display='none'; }
+    renderCharts();
+  }
+  function renderCharts(){
+    var byC={};txs.filter(function(t){return t.type==='expense';}).forEach(function(t){byC[t.category]=(byC[t.category]||0)+t.amount;});
+    var lbs=Object.keys(byC),dt=lbs.map(function(l){return byC[l];}),cs=lbs.map(function(l){return CC[l]||'#888780';}),tot=dt.reduce(function(s,n){return s+n;},0);
+    var lg=document.getElementById('catLegend');
+    lg.innerHTML=lbs.length?lbs.map(function(l,i){var p=tot?Math.round(dt[i]/tot*100):0;return '<span class="k"><span class="swatch" style="background:'+cs[i]+';"></span>'+l+' '+p+'%</span>';}).join(''):'<span style="color:rgba(243,226,189,.4);">No expenses yet</span>';
+    if(catChart)catChart.destroy();
+    catChart=new Chart(document.getElementById('catChart'),{type:'doughnut',data:{labels:lbs,datasets:[{data:dt,backgroundColor:cs,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.label+': '+rs(c.parsed);}}}}}});
+    var days=[];for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);days.push(d);}
+    var dk=days.map(function(d){return d.toISOString().slice(0,10);}),dl=days.map(function(d){return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});});
+    var iA=dk.map(function(k){return txs.filter(function(t){return t.date===k&&t.type==='income';}).reduce(function(s,t){return s+t.amount;},0);});
+    var eA=dk.map(function(k){return txs.filter(function(t){return t.date===k&&t.type==='expense';}).reduce(function(s,t){return s+t.amount;},0);});
+    if(trendChart)trendChart.destroy();
+    trendChart=new Chart(document.getElementById('trendChart'),{type:'bar',data:{labels:dl,datasets:[{label:'Income',data:iA,backgroundColor:'#7dd87a',borderRadius:4},{label:'Expense',data:eA,backgroundColor:'#ff8a8a',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return ' '+c.dataset.label+': '+rs(c.parsed.y);}}}},scales:{x:{ticks:{color:'#d4a574',autoSkip:false,maxRotation:45,font:{size:10}},grid:{display:false}},y:{ticks:{color:'#d4a574',callback:function(v){return 'रु '+v;}},grid:{color:'rgba(212,165,116,.1)'},beginAtZero:true}}}});
+  }
+
+  // ============ INVENTORY ============
+  function findProduct(id){return inventory.find(function(p){return p.id===id;});}
+
+  function renderInventory(){
+    var list=document.getElementById('inventoryList');
+    var q=(document.getElementById('invSearch').value||'').toLowerCase();
+    var byCat={};
+    inventory.forEach(function(p,idx){
+      if(q&&p.name.toLowerCase().indexOf(q)<0&&p.cat.toLowerCase().indexOf(q)<0)return;
+      if(!byCat[p.cat])byCat[p.cat]=[];
+      byCat[p.cat].push({p:p,idx:idx});
+    });
+    var html='';
+    Object.keys(byCat).forEach(function(cat){
+      html+='<div class="inv-cat-header">'+esc(cat)+'</div>';
+      byCat[cat].forEach(function(o){
+        var low=o.p.stock<=o.p.reorder;
+        html+='<div class="inv-row'+(low?' low':'')+'">'+
+          '<div class="inv-name">'+esc(o.p.name)+'<span class="inv-meta">'+esc(o.p.unit)+' · ID: '+esc(o.p.id)+'</span></div>'+
+          '<div class="inv-stock'+(low?' low':'')+'">'+o.p.stock+'</div>'+
+          '<div class="inv-actions">'+
+            '<button class="tt-btn small" data-act="add" data-idx="'+o.idx+'">+ Stock</button>'+
+            '<button class="tt-btn ghost small" data-act="adjust" data-idx="'+o.idx+'">Adjust</button>'+
+            '<button class="tt-btn ghost small" data-act="edit" data-idx="'+o.idx+'">✎</button>'+
+            '<button class="tt-btn danger small" data-act="del" data-idx="'+o.idx+'">×</button>'+
+          '</div></div>';
+      });
+    });
+    if(!html)html='<div class="tt-empty">No products. Click "+ Add Product" to start.</div>';
+    list.innerHTML=html;
+    list.querySelectorAll('button[data-act]').forEach(function(b){b.addEventListener('click',function(){
+      var idx=+b.dataset.idx,p=inventory[idx];
+      if(b.dataset.act==='add')addStockFlow(p);
+      else if(b.dataset.act==='adjust')adjustStockFlow(p);
+      else if(b.dataset.act==='edit')editProductFlow(p,idx);
+      else if(b.dataset.act==='del'){if(confirm('Delete '+p.name+'? Stock movement history is preserved.')){inventory.splice(idx,1);saveInv();renderInventory();syncReplaceInv();}}
+    });});
+  }
+  document.getElementById('invSearch').addEventListener('input',renderInventory);
+
+  function addStockFlow(p){
+    var qty=parseInt(prompt('Add how many '+p.unit+' of '+p.name+'?','1'))||0;
+    if(qty<=0)return;
+    var costEach=parseFloat(prompt('Cost per '+p.unit+' (रु):',p.cost||0))||p.cost||0;
+    var totalCost=qty*costEach;
+    var logExpense=confirm('Log रु '+totalCost+' as a Stock Purchase expense?');
+    p.stock+=qty;p.cost=costEach;
+    var mov={id:Date.now(),date:todayStr(),productId:p.id,productName:p.name,type:'purchase',qty:qty,newStock:p.stock,note:'Cost: रु '+costEach+'/'+p.unit};
+    movements.push(mov);
+    if(logExpense){
+      var tx={id:Date.now()+1,type:'expense',category:'Stock Purchase',amount:totalCost,date:todayStr(),payment:'',note:'Stock: '+qty+' '+p.unit+' '+p.name};
+      txs.push(tx);saveTx();syncAppendTx(tx);
+    }
+    saveInv();saveMov();syncAppendMov(mov);syncReplaceInv();
+    renderInventory();renderDashboard();
+  }
+  function adjustStockFlow(p){
+    var newQty=parseInt(prompt('Set actual stock count for '+p.name+' (current: '+p.stock+'):',p.stock));
+    if(isNaN(newQty)||newQty<0)return;
+    var diff=newQty-p.stock;
+    var note=prompt('Reason for adjustment (e.g. damage, count correction):','count correction')||'';
+    p.stock=newQty;
+    var mov={id:Date.now(),date:todayStr(),productId:p.id,productName:p.name,type:'adjustment',qty:diff,newStock:p.stock,note:note};
+    movements.push(mov);saveInv();saveMov();syncAppendMov(mov);syncReplaceInv();renderInventory();
+  }
+  function editProductFlow(p,idx){
+    var name=prompt('Product name:',p.name);if(!name)return;
+    var cat=prompt('Category:',p.cat)||p.cat;
+    var unit=prompt('Unit (bottle/stick/qtr-btl/etc):',p.unit)||p.unit;
+    var reorder=parseInt(prompt('Reorder level (low-stock alert):',p.reorder))||p.reorder;
+    var cost=parseFloat(prompt('Cost price per unit (रु):',p.cost||0))||p.cost||0;
+    p.name=name;p.cat=cat;p.unit=unit;p.reorder=reorder;p.cost=cost;
+    saveInv();renderInventory();syncReplaceInv();
+  }
+  document.getElementById('addProductBtn').addEventListener('click',function(){
+    var id=prompt('Product ID (e.g. P-NEWITEM, must be unique):');if(!id)return;
+    if(findProduct(id)){alert('Product ID already exists.');return;}
+    var name=prompt('Product name:');if(!name)return;
+    var cat=prompt('Category:','Other')||'Other';
+    var unit=prompt('Unit:','piece')||'piece';
+    var stock=parseInt(prompt('Initial stock:','0'))||0;
+    var reorder=parseInt(prompt('Reorder level:','5'))||5;
+    var cost=parseFloat(prompt('Cost price (रु):','0'))||0;
+    inventory.push({id:id,name:name,cat:cat,unit:unit,stock:stock,reorder:reorder,cost:cost});
+    if(stock>0){
+      var mov={id:Date.now(),date:todayStr(),productId:id,productName:name,type:'initial',qty:stock,newStock:stock,note:'Initial stock'};
+      movements.push(mov);saveMov();syncAppendMov(mov);
+    }
+    saveInv();renderInventory();syncReplaceInv();
+  });
+  document.getElementById('viewMovementsBtn').addEventListener('click',function(){
+    document.getElementById('movementsModal').classList.add('show');renderMovements();
+  });
+  function renderMovements(){
+    var list=document.getElementById('movementsList');
+    var items=movements.slice().sort(function(a,b){return b.id-a.id;});
+    if(!items.length){list.innerHTML='<div class="tt-empty">No movements yet.</div>';return;}
+    list.innerHTML=items.map(function(m){
+      var sg=m.qty>=0?'+':'';var cl=m.qty>=0?'#7dd87a':'#ff8a8a';
+      return '<div class="tx-row"><div style="flex:1;min-width:0;"><div><span class="cat-pill">'+esc(m.type)+'</span>'+esc(m.productName)+(m.note?' · '+esc(m.note):'')+'</div><div class="tx-meta">'+fmtBs(new Date(m.date))+' · '+m.date+'</div></div><div style="color:'+cl+';font-weight:500;text-align:right;">'+sg+m.qty+'<div class="tx-meta">→ '+m.newStock+'</div></div></div>';
+    }).join('');
+  }
+
+  // ============ MENU MANAGEMENT ============
+  document.getElementById('manageMenuBtn').addEventListener('click',function(){document.getElementById('menuModal').classList.add('show');renderMenuEditor();});
+  document.getElementById('recipesBtn').addEventListener('click',function(){document.getElementById('recipesModal').classList.add('show');renderRecipes();});
+  document.querySelectorAll('[data-close-modal]').forEach(function(b){b.addEventListener('click',function(e){e.target.closest('.modal-overlay').classList.remove('show');});});
+  document.querySelectorAll('.modal-overlay').forEach(function(ov){ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('show');});});
+
+  document.getElementById('menuSearch').addEventListener('input',renderMenuEditor);
+  document.getElementById('addItemToMenuBtn').addEventListener('click',function(){
+    var name=prompt('Item name:');if(!name)return;
+    var cat=prompt('Category:','Other')||'Other';
+    var price=parseFloat(prompt('Price (रु):','0'))||0;
+    var lp=prompt('Linked Product ID for inventory deduction (optional, e.g. P-TUBORG):','')||'';
+    menu.push({cat:cat,name:name,price:price,linkedProduct:lp});saveMenu();renderMenuEditor();
+  });
+  document.getElementById('resetMenuBtn').addEventListener('click',function(){
+    if(!confirm('Reset menu to default? Custom edits will be lost.'))return;
+    menu=DEFAULT_MENU.slice();saveMenu();renderMenuEditor();
+  });
+
+  function renderMenuEditor(){
+    var q=(document.getElementById('menuSearch').value||'').toLowerCase();
+    var editor=document.getElementById('menuEditor');
+    var filtered=menu.map(function(it,idx){return {cat:it.cat,name:it.name,price:it.price,linkedProduct:it.linkedProduct||'',idx:idx};}).filter(function(it){return !q||it.name.toLowerCase().indexOf(q)>=0||it.cat.toLowerCase().indexOf(q)>=0;});
+    if(!filtered.length){editor.innerHTML='<div class="tt-empty">No items.</div>';return;}
+    var byCat={};filtered.forEach(function(it){if(!byCat[it.cat])byCat[it.cat]=[];byCat[it.cat].push(it);});
+    var html='';
+    Object.keys(byCat).forEach(function(cat){
+      html+='<div class="menu-cat-header"><span>'+esc(cat)+'</span><span style="font-size:11px;color:#d4a574;font-weight:normal;">'+byCat[cat].length+' items</span></div>';
+      byCat[cat].forEach(function(it){
+        html+='<div class="menu-item-row"><input class="tt-input" data-edit="name" data-idx="'+it.idx+'" value="'+esc(it.name)+'" placeholder="Name" /><input class="tt-input" data-edit="cat" data-idx="'+it.idx+'" value="'+esc(it.cat)+'" placeholder="Category" /><input class="tt-input" type="number" data-edit="price" data-idx="'+it.idx+'" value="'+it.price+'" placeholder="Price" /><input class="tt-input" data-edit="linkedProduct" data-idx="'+it.idx+'" value="'+esc(it.linkedProduct)+'" placeholder="Link ID (P-...)" /><button class="tt-btn danger small" data-del="'+it.idx+'">×</button></div>';
+      });
+    });
+    editor.innerHTML=html;
+    editor.querySelectorAll('input[data-edit]').forEach(function(inp){inp.addEventListener('change',function(e){
+      var idx=+e.target.dataset.idx,field=e.target.dataset.edit;
+      if(field==='price')menu[idx][field]=parseFloat(e.target.value)||0;
+      else menu[idx][field]=e.target.value.trim();
+      saveMenu();
+    });});
+    editor.querySelectorAll('button[data-del]').forEach(function(b){b.addEventListener('click',function(){
+      if(!confirm('Delete this item?'))return;
+      menu.splice(+b.dataset.del,1);saveMenu();renderMenuEditor();
+    });});
+  }
+
+  document.getElementById('recipeSearch').addEventListener('input',renderRecipes);
+  function renderRecipes(){
+    var q=(document.getElementById('recipeSearch').value||'').toLowerCase();
+    var list=RECIPES.filter(function(r){return !q||r.name.toLowerCase().indexOf(q)>=0||r.ing.toLowerCase().indexOf(q)>=0;});
+    var el=document.getElementById('recipesList');
+    if(!list.length){el.innerHTML='<div class="tt-empty">No recipes match.</div>';return;}
+    el.innerHTML=list.map(function(r){return '<div class="recipe-card"><div class="name">'+esc(r.name)+' — रु '+r.price+'</div><div class="ing">'+esc(r.ing)+'</div></div>';}).join('');
+  }
+
+  // ============ SYNC UI ============
+  function showStatus(msg,kind){
+    var el=document.getElementById('syncStatus');
+    el.className='status-msg '+(kind==='ok'?'status-ok':kind==='err'?'status-err':'status-info');
+    el.innerHTML=msg;
+  }
+  function showPullStatus(msg,kind){
+    var el=document.getElementById('pullStatus');
+    el.className='status-msg '+(kind==='ok'?'status-ok':kind==='err'?'status-err':'status-info');
+    el.innerHTML=msg;
+  }
+
+  document.getElementById('saveSyncBtn').addEventListener('click',async function(){
+    sync.url=document.getElementById('syncUrl').value.trim();
+    sync.token=document.getElementById('syncToken').value.trim();
+    sync.enabled=document.getElementById('syncEnabled').checked;
+    if(!sync.url||!sync.token){showStatus('Please fill both the URL and the token.','err');return;}
+    if(sync.url.indexOf('script.google.com')<0||!sync.url.endsWith('/exec')){showStatus('URL must end in /exec','err');return;}
+    showStatus('Testing connection…','info');
+    var r=await postSync('ping');
+    if(r.ok)showStatus('✓ Connected — '+esc(r.message||'')+'! '+(sync.enabled?'<strong>Auto-sync ON.</strong>':'Enable auto-sync and save.'),'ok');
+    else showStatus('✗ Failed: '+(r.error||'unknown'),'err');
+    saveS();
+  });
+
+  // ⬆ PUSH ALL to sheet
+  document.getElementById('resyncBtn').addEventListener('click',async function(){
+    if(!sync.url||!sync.token){showStatus('Configure URL and token first.','err');return;}
+    if(!confirm('Push ALL local data to sheet? This will overwrite the sheet. Continue?'))return;
+    showStatus('Pushing transactions…','info');
+    var r1=await postSync('replace','transactions',{rows:txs.map(txRow)});
+    if(!r1.ok){showStatus('✗ Transactions failed: '+(r1.error||''),'err');return;}
+    showStatus('Pushing inventory…','info');
+    var r2=await postSync('replace','inventory',{rows:inventory.map(invRow)});
+    if(!r2.ok){showStatus('✗ Inventory failed: '+(r2.error||''),'err');return;}
+    showStatus('Pushing movements…','info');
+    var r3=await postSync('replace','movements',{rows:movements.map(movRow)});
+    if(!r3.ok){showStatus('✗ Movements failed: '+(r3.error||''),'err');return;}
+    showStatus('✓ All pushed — '+txs.length+' transactions, '+inventory.length+' products, '+movements.length+' movements.','ok');
+    saveS();
+  });
+
+  // ⬇ PULL helpers — convert sheet rows → dashboard objects
+  function rowsToTxs(rows){
+    return rows.map(function(r){
+      return {id:+r[0]||Date.now(),date:r[1]?String(r[1]).slice(0,10):todayStr(),type:String(r[3]||'expense'),category:String(r[4]||'Other'),amount:parseFloat(r[5])||0,payment:String(r[6]||''),note:String(r[7]||'')};
+    }).filter(function(t){return t.amount>0;});
+  }
+  function rowsToInv(rows){
+    return rows.map(function(r){
+      return {id:String(r[0]||'P-'+Date.now()),name:String(r[1]||''),cat:String(r[2]||'Other'),unit:String(r[3]||'piece'),stock:parseInt(r[4])||0,reorder:parseInt(r[5])||5,cost:parseFloat(r[6])||0};
+    }).filter(function(p){return p.name;});
+  }
+  function rowsToMovs(rows){
+    return rows.map(function(r){
+      return {id:+r[0]||Date.now(),date:String(r[1]||todayStr()).slice(0,10),productId:String(r[3]||''),productName:String(r[4]||''),type:String(r[5]||''),qty:parseInt(r[6])||0,newStock:parseInt(r[7])||0,note:String(r[8]||'')};
+    });
+  }
+  function rowsToCr(rows){
+    return rows.map(function(r){
+      return {id:+r[0]||Date.now(),date:String(r[1]||todayStr()).slice(0,10),name:String(r[2]||''),contact:String(r[3]||''),type:String(r[4]||'other'),amount:parseFloat(r[5])||0,paid:parseFloat(r[6])||0,settled:r[7]==='true'||r[7]===true,itemName:String(r[8]||''),note:String(r[9]||'')};
+    }).filter(function(cr){return cr.name&&cr.amount>0;});
+  }
+
+  // ⬇ PULL TRANSACTIONS
+  document.getElementById('pullTxBtn').addEventListener('click',async function(){
+    if(!sync.url||!sync.token){showPullStatus('Configure sync URL & token first.','err');return;}
+    if(!confirm('Pull transactions from sheet? This will REPLACE your local transactions.'))return;
+    showPullStatus('Pulling transactions from sheet…','info');
+    var r=await postSync('pull','transactions',{});
+    if(!r.ok){showPullStatus('✗ Failed: '+(r.error||''),'err');return;}
+    var pulled=rowsToTxs(r.rows||[]);
+    txs=pulled;saveTx();renderAll();
+    showPullStatus('✓ Pulled '+pulled.length+' transactions from sheet!','ok');
+  });
+
+  // ⬇ PULL INVENTORY
+  document.getElementById('pullInvBtn').addEventListener('click',async function(){
+    if(!sync.url||!sync.token){showPullStatus('Configure sync URL & token first.','err');return;}
+    if(!confirm('Pull inventory from sheet? This will REPLACE your local inventory.'))return;
+    showPullStatus('Pulling inventory from sheet…','info');
+    var r=await postSync('pull','inventory',{});
+    if(!r.ok){showPullStatus('✗ Failed: '+(r.error||''),'err');return;}
+    var pulled=rowsToInv(r.rows||[]);
+    if(!pulled.length){showPullStatus('⚠ Sheet inventory is empty. Nothing pulled.','info');return;}
+    inventory=pulled;saveInv();renderInventory();renderDashboard();
+    showPullStatus('✓ Pulled '+pulled.length+' inventory items from sheet!','ok');
+  });
+
+  // ⬇ PULL MOVEMENTS
+  document.getElementById('pullMovBtn').addEventListener('click',async function(){
+    if(!sync.url||!sync.token){showPullStatus('Configure sync URL & token first.','err');return;}
+    if(!confirm('Pull stock movements from sheet?'))return;
+    showPullStatus('Pulling movements…','info');
+    var r=await postSync('pull','movements',{});
+    if(!r.ok){showPullStatus('✗ Failed: '+(r.error||''),'err');return;}
+    movements=rowsToMovs(r.rows||[]);saveMov();
+    showPullStatus('✓ Pulled '+movements.length+' movements from sheet!','ok');
+  });
+
+  // ⬇ PULL CREDITS
+  document.getElementById('pullCrBtn').addEventListener('click',async function(){
+    if(!sync.url||!sync.token){showPullStatus('Configure sync URL & token first.','err');return;}
+    if(!confirm('Pull credits from sheet?'))return;
+    showPullStatus('Pulling credits…','info');
+    var r=await postSync('pull','credits',{});
+    if(!r.ok){showPullStatus('✗ Failed: '+(r.error||''),'err');return;}
+    credits=rowsToCr(r.rows||[]);saveCredits();renderCreditTab();
+    showPullStatus('✓ Pulled '+credits.length+' credit records!','ok');
+  });
+
+  // ⬇⬇ PULL ALL
+  document.getElementById('pullAllBtn').addEventListener('click',async function(){
+    if(!sync.url||!sync.token){showPullStatus('Configure sync URL & token first.','err');return;}
+    if(!confirm('Pull ALL data from sheet? This replaces ALL local data (transactions, inventory, movements, credits).'))return;
+    showPullStatus('Pulling all data from sheet… please wait.','info');
+    var r=await postSync('pull_all','',{});
+    if(!r.ok){showPullStatus('✗ Failed: '+(r.error||''),'err');return;}
+    var d=r.data||{};
+    var tPulled=0,iPulled=0,mPulled=0,cPulled=0;
+    if(d.transactions){var t=rowsToTxs(d.transactions);txs=t;saveTx();tPulled=t.length;}
+    if(d.inventory&&d.inventory.length){var inv=rowsToInv(d.inventory);inventory=inv;saveInv();iPulled=inv.length;}
+    if(d.movements){var mov=rowsToMovs(d.movements);movements=mov;saveMov();mPulled=mov.length;}
+    if(d.credits){var cr=rowsToCr(d.credits);credits=cr;saveCredits();cPulled=cr.length;}
+    renderAll();try{renderCreditTab();}catch(e){}
+    showPullStatus('✓ Full restore complete! — '+tPulled+' transactions · '+iPulled+' inventory items · '+mPulled+' movements · '+cPulled+' credits','ok');
+  });
+
+  function renderAll(){
+    try{renderSeats();}catch(e){}
+    try{renderBillPanel();}catch(e){}
+    try{renderHistory();}catch(e){}
+    try{renderDashboard();}catch(e){}
+    try{var inv=document.getElementById('pane-inventory');if(inv&&inv.classList.contains('active'))renderInventory();}catch(e){}
+  }
+  load();
+})();
+}); // DOMContentLoaded
+
+</script>
+
+<div class="modal-overlay" id="crSettleModal">
+<div class="modal" style="max-width:420px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <h3 style="margin:0;">💳 Settle Credit</h3>
+    <button class="tt-btn ghost small" data-close-modal>✕ Close</button>
+  </div>
+  <div id="crSettleInfo" style="font-size:13px;color:#d4a574;margin-bottom:12px;line-height:1.6;"></div>
+  <div class="form-grid">
+    <div><label class="field-label">Amount Received (रु)</label><input class="tt-input" type="number" id="crSettleAmt" placeholder="0"/></div>
+    <div><label class="field-label">Payment Method</label>
+      <select class="tt-select" id="crSettlePay">
+        <option value="Cash">💵 Cash</option><option value="Fone Pay">📱 Fone Pay</option><option value="Smart QR">🔲 Smart QR</option>
+      </select>
+    </div>
+  </div>
+  <div><label class="field-label">Note</label><input class="tt-input" id="crSettleNote" placeholder="optional"/></div>
+  <div style="display:flex;gap:8px;margin-top:14px;">
+    <button class="tt-btn" id="crSettleFullBtn" style="flex:1;">✅ Fully Settled</button>
+    <button class="tt-btn ghost" id="crSettlePartBtn" style="flex:1;">💰 Partial Payment</button>
+  </div>
+</div>
+</div>
+
+</body>
+</html>
